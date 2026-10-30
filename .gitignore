@@ -43,3 +43,6 @@ next-env.d.ts
 # database
 /local.db*
 !.env.example
+
+# uploaded images
+/uploads

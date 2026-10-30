@@ -1,0 +1,59 @@
+import { Suspense } from "react";
+import { Card, ContentSkeleton, PageHeader } from "@/components/ui";
+import { CopyEmailsButton, DeleteSubscriberButton } from "@/components/admin/site-forms";
+import { requireUser } from "@/lib/auth";
+import { formatDate } from "@/lib/format";
+import { getSubscribers } from "@/lib/queries";
+
+export const metadata = { title: "المشتركون" };
+
+export default function SubscribersPage() {
+  return (
+    <Suspense fallback={<ContentSkeleton />}>
+      <SubscribersContent />
+    </Suspense>
+  );
+}
+
+async function SubscribersContent() {
+  const [me, list] = await Promise.all([requireUser(), getSubscribers()]);
+  return (
+    <>
+      <PageHeader
+        title="المشتركون"
+        subtitle={`${list.length} مشترك في النشرة البريدية`}
+        action={list.length > 0 && <CopyEmailsButton emails={list.map((s) => s.email)} />}
+      />
+      {list.length === 0 ? (
+        <Card className="py-12 text-center text-muted">لا يوجد مشتركون بعد.</Card>
+      ) : (
+        <Card className="overflow-hidden p-0">
+          <table className="w-full text-sm">
+            <thead className="bg-surface-2 text-muted">
+              <tr>
+                <th className="px-5 py-3 text-right font-medium">البريد</th>
+                <th className="px-5 py-3 text-right font-medium">تاريخ الاشتراك</th>
+                <th className="px-5 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((s) => (
+                <tr key={s.id} className="border-t border-border">
+                  <td className="px-5 py-3" dir="ltr">
+                    <a href={`mailto:${s.email}`} className="hover:text-primary">
+                      {s.email}
+                    </a>
+                  </td>
+                  <td className="px-5 py-3 text-muted" dir="ltr">
+                    {formatDate(s.createdAt)}
+                  </td>
+                  <td className="px-5 py-3 text-left">{me.role === "admin" && <DeleteSubscriberButton id={s.id} />}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+    </>
+  );
+}

@@ -121,7 +121,7 @@ function UserToggle({ user, disabled }: { user: UserRow; disabled: boolean }) {
 export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId: number; canManage: boolean }) {
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
-  const list = users.filter((u) => u.name.includes(q) || u.email.includes(q));
+  const list = users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
 
   return (
     <>

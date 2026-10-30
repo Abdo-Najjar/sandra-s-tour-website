@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import {
   db,
   orders,
@@ -22,8 +22,10 @@ import {
   DASHBOARD_ROLES,
 } from "@/lib/auth";
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "@/lib/password";
+import { clearRateLimit, rateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
-export type ActionState = { ok?: boolean; error?: string } | undefined;
+export type ActionState = { ok?: boolean; error?: string; email?: string } | undefined;
 
 const NO_PERMISSION = "ليس لديك صلاحية لهذا الإجراء";
 const str = (fd: FormData, key: string) => String(fd.get(key) ?? "").trim();
@@ -40,18 +42,27 @@ export async function login(_: ActionState, fd: FormData): Promise<ActionState> 
   const password = String(fd.get("password") ?? "");
   const next = str(fd, "next");
 
-  if (!email || !password) return { error: "أدخل البريد الإلكتروني وكلمة المرور" };
+  if (!email || !password) return { error: "أدخل البريد الإلكتروني وكلمة المرور", email };
+
+  // Slow down password guessing: 10 tries per 15 minutes per email and 30 per IP.
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
+  const windowMs = 15 * 60 * 1000;
+  if (!rateLimit(`login:${email}`, 10, windowMs) || !rateLimit(`login-ip:${ip}`, 30, windowMs))
+    return { error: "محاولات كثيرة. حاول مرة أخرى بعد 15 دقيقة", email };
 
   const user = await db.query.users.findFirst({ where: eq(users.email, email) });
   const valid = await verifyPassword(password, user?.passwordHash ?? (await dummyHash));
 
-  if (!user || !user.passwordHash || !valid) return { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة" };
-  if (!user.active) return { error: "هذا الحساب موقوف" };
-  if (!DASHBOARD_ROLES.includes(user.role)) return { error: "هذا الحساب لا يملك صلاحية دخول لوحة التحكم" };
+  if (!user || !user.passwordHash || !valid) return { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة", email };
+  if (!user.active) return { error: "هذا الحساب موقوف", email };
+  if (!DASHBOARD_ROLES.includes(user.role)) return { error: "هذا الحساب لا يملك صلاحية دخول لوحة التحكم", email };
+
+  clearRateLimit(`login:${email}`);
 
   await createSession(user.id);
   // Only allow same-site relative paths to avoid open redirects.
-  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/");
+  redirect(next.startsWith("/admin") && !next.startsWith("//") ? next : "/admin");
 }
 
 export async function logout() {
@@ -178,10 +189,14 @@ export async function createOrder(_: ActionState, fd: FormData): Promise<ActionS
   if (!product) return { error: "اختر منتجاً" };
   if (product.stock < quantity) return { error: `المخزون المتوفر ${product.stock} فقط` };
 
-  await db.batch([
-    db.insert(orders).values({ customer, productId, quantity, amount: product.price * quantity }),
-    db.update(products).set({ stock: product.stock - quantity }).where(eq(products.id, productId)),
-  ]);
+  // Take the stock only if it's still there (two orders at once can't oversell).
+  const taken = await db
+    .update(products)
+    .set({ stock: sql`${products.stock} - ${quantity}` })
+    .where(and(eq(products.id, productId), gte(products.stock, quantity)))
+    .returning({ id: products.id });
+  if (!taken.length) return { error: "المخزون لم يعد كافياً" };
+  await db.insert(orders).values({ customer, productId, quantity, amount: product.price * quantity });
   refresh();
   return { ok: true };
 }

@@ -1,8 +1,10 @@
 import "server-only";
 import { connection } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { and, count, desc, eq, gte, lt, ne, sql, sum } from "drizzle-orm";
-import { db, orders, products, settings, users, type OrderStatus } from "@/db";
+import { and, asc, count, desc, eq, gte, lt, ne, sql, sum } from "drizzle-orm";
+import { bookings, db, messages, orders, pages, posts, products, settings, site, subscribers, tours, users, type BookingStatus, type MessageKind, type OrderStatus } from "@/db";
+import { withDefaults } from "@/lib/site/content";
+import { tourDetails } from "@/lib/site/tour";
 
 // Every query checks the session first (the Data Access Layer pattern).
 // connection() marks them as per-request so reading the clock and the DB is allowed.
@@ -165,4 +167,127 @@ export async function getProducts() {
     .leftJoin(orders, and(eq(orders.productId, products.id), ne(orders.status, "cancelled")))
     .groupBy(products.id)
     .orderBy(desc(products.id));
+}
+
+// ---------- Website (dashboard side, always fresh) ----------
+
+export async function getSiteContent() {
+  await guard();
+  const row = await db.query.site.findFirst({ where: eq(site.id, 1) });
+  return withDefaults(row?.data);
+}
+
+export async function getAdminTours() {
+  await guard();
+  const bookingsCount = sql<number>`(select count(*) from ${bookings} where ${bookings.tourId} = ${tours.id})`;
+  return db
+    .select({
+      id: tours.id,
+      slug: tours.slug,
+      title: tours.title,
+      titleAr: tours.titleAr,
+      image: tours.image,
+      price: tours.price,
+      durationDays: tours.durationDays,
+      featured: tours.featured,
+      published: tours.published,
+      sortOrder: tours.sortOrder,
+      bookings: bookingsCount,
+    })
+    .from(tours)
+    .orderBy(asc(tours.sortOrder), asc(tours.id));
+}
+
+export async function getAdminTour(id: number) {
+  await guard();
+  const row = await db.query.tours.findFirst({ where: eq(tours.id, id) });
+  return row ? { ...row, details: tourDetails(row.details) } : null;
+}
+
+export async function getAdminPosts() {
+  await guard();
+  return db
+    .select({
+      id: posts.id,
+      slug: posts.slug,
+      title: posts.title,
+      category: posts.category,
+      cover: posts.cover,
+      author: posts.author,
+      publishedAt: posts.publishedAt,
+      featured: posts.featured,
+      published: posts.published,
+    })
+    .from(posts)
+    .orderBy(desc(posts.publishedAt), desc(posts.id));
+}
+
+export async function getAdminPost(id: number) {
+  await guard();
+  return (await db.query.posts.findFirst({ where: eq(posts.id, id) })) ?? null;
+}
+
+export async function getBookings(status?: BookingStatus) {
+  await guard();
+  return db
+    .select()
+    .from(bookings)
+    .where(status ? eq(bookings.status, status) : undefined)
+    .orderBy(desc(bookings.createdAt), desc(bookings.id));
+}
+
+export async function getBookingCounts() {
+  await guard();
+  const rows = await db.select({ status: bookings.status, n: count() }).from(bookings).groupBy(bookings.status);
+  const counts = { all: 0, new: 0, contacted: 0, confirmed: 0, cancelled: 0 };
+  for (const r of rows) {
+    counts[r.status] = r.n;
+    counts.all += r.n;
+  }
+  return counts;
+}
+
+export async function getMessages(kind?: MessageKind) {
+  await guard();
+  return db
+    .select()
+    .from(messages)
+    .where(kind ? eq(messages.kind, kind) : undefined)
+    .orderBy(desc(messages.createdAt), desc(messages.id));
+}
+
+export async function getSubscribers() {
+  await guard();
+  return db.select().from(subscribers).orderBy(desc(subscribers.createdAt), desc(subscribers.id));
+}
+
+// Badge numbers for the sidebar.
+export async function getInboxCounts() {
+  await guard();
+  const [[b], [m]] = await Promise.all([
+    db.select({ n: count() }).from(bookings).where(eq(bookings.status, "new")),
+    db.select({ n: count() }).from(messages).where(eq(messages.read, false)),
+  ]);
+  return { bookings: b.n, messages: m.n };
+}
+
+export async function getWebsiteStats() {
+  await guard();
+  const [[t], [p], [s], counts] = await Promise.all([
+    db.select({ n: count() }).from(tours).where(eq(tours.published, true)),
+    db.select({ n: count() }).from(posts).where(eq(posts.published, true)),
+    db.select({ n: count() }).from(subscribers),
+    getInboxCounts(),
+  ]);
+  return { tours: t.n, posts: p.n, subscribers: s.n, newBookings: counts.bookings, unreadMessages: counts.messages };
+}
+
+export async function getAdminPages() {
+  await guard();
+  return db.select().from(pages).orderBy(asc(pages.sortOrder), asc(pages.id));
+}
+
+export async function getAdminPage(id: number) {
+  await guard();
+  return (await db.query.pages.findFirst({ where: eq(pages.id, id) })) ?? null;
 }

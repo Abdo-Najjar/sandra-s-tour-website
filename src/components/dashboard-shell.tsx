@@ -2,86 +2,152 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import {
-  Bell,
+  CalendarCheck,
+  ExternalLink,
+  FileText,
   LayoutDashboard,
   LogOut,
+  Mail,
+  Map as MapIcon,
   Menu,
+  Newspaper,
   Package,
-  Search,
+  PanelsTopLeft,
   Settings,
   ShoppingCart,
   Users,
+  UsersRound,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { logout } from "@/lib/actions";
 
-const nav = [
-  { href: "/", label: "الرئيسية", icon: LayoutDashboard },
-  { href: "/orders", label: "الطلبات", icon: ShoppingCart },
-  { href: "/products", label: "المنتجات", icon: Package },
-  { href: "/users", label: "المستخدمون", icon: Users },
-  { href: "/settings", label: "الإعدادات", icon: Settings },
+type NavItem = { href: string; label: string; icon: LucideIcon };
+
+const groups: { title?: string; items: NavItem[] }[] = [
+  { items: [{ href: "/admin", label: "الرئيسية", icon: LayoutDashboard }] },
+  {
+    title: "الموقع",
+    items: [
+      { href: "/admin/site", label: "محتوى الموقع", icon: PanelsTopLeft },
+      { href: "/admin/tours", label: "الجولات", icon: MapIcon },
+      { href: "/admin/blog", label: "المدونة", icon: Newspaper },
+      { href: "/admin/bookings", label: "الحجوزات", icon: CalendarCheck },
+      { href: "/admin/messages", label: "الرسائل والشراكات", icon: Mail },
+      { href: "/admin/subscribers", label: "المشتركون", icon: UsersRound },
+      { href: "/admin/pages", label: "صفحات إضافية", icon: FileText },
+    ],
+  },
+  {
+    title: "المتجر",
+    items: [
+      { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart },
+      { href: "/admin/products", label: "المنتجات", icon: Package },
+    ],
+  },
+  {
+    title: "النظام",
+    items: [
+      { href: "/admin/users", label: "المستخدمون", icon: Users },
+      { href: "/admin/settings", label: "الإعدادات", icon: Settings },
+    ],
+  },
 ];
 
-export function DashboardShell({ children, user }: { children: React.ReactNode; user: React.ReactNode }) {
-  const pathname = usePathname();
+type Badges = Record<string, React.ReactNode>;
+
+function CurrentNav(props: { badges: Badges; onNavigate: () => void }) {
+  return <NavGroups pathname={usePathname()} {...props} />;
+}
+
+function NavGroups({ pathname, badges, onNavigate }: { pathname: string; badges: Badges; onNavigate: () => void }) {
+  return (
+    <>
+      {groups.map((g, i) => (
+        <div key={i}>
+          {g.title && <div className="mb-1 px-3 text-xs font-semibold text-muted">{g.title}</div>}
+          <div className="space-y-0.5">
+            {g.items.map(({ href, label, icon: Icon }) => {
+              const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onNavigate}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    active ? "bg-primary-soft text-primary" : "text-muted hover:bg-surface-2 hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="size-[18px]" />
+                  <span className="flex-1">{label}</span>
+                  {badges[href]}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+export function DashboardShell({
+  children,
+  user,
+  badges = {},
+}: {
+  children: React.ReactNode;
+  user: React.ReactNode;
+  // Small server-rendered counters next to some links, keyed by href.
+  badges?: Record<string, React.ReactNode>;
+}) {
   const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
 
   return (
     <div className="flex min-h-screen">
-      {/* Mobile overlay */}
       {open && (
-        <button
-          aria-label="إغلاق القائمة"
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
+        <button aria-label="إغلاق القائمة" className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
       <aside
-        className={`fixed inset-y-0 right-0 z-40 flex w-64 flex-col border-l border-border bg-surface transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 right-0 z-40 flex w-64 flex-col border-l border-border bg-surface transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center justify-between px-5">
-          <div className="flex items-center gap-2">
-            <div className="grid size-9 place-items-center rounded-lg bg-primary text-lg font-bold text-white">
-              س
-            </div>
+        <div className="flex h-16 shrink-0 items-center justify-between px-5">
+          <Link href="/admin" className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/site/logo.png" alt="" className="size-9 rounded-full border border-border object-contain" />
             <span className="text-lg font-bold">لوحة التحكم</span>
-          </div>
+          </Link>
           <button className="lg:hidden" onClick={() => setOpen(false)} aria-label="إغلاق">
             <X className="size-5" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {nav.map(({ href, label, icon: Icon }) => {
-            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-primary-soft text-primary"
-                    : "text-muted hover:bg-surface-2 hover:text-foreground"
-                }`}
-              >
-                <Icon className="size-5" />
-                {label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-2">
+          {/* The active link needs the URL, which only exists at request time. */}
+          <Suspense fallback={<NavGroups pathname="" badges={badges} onNavigate={close} />}>
+            <CurrentNav badges={badges} onNavigate={close} />
+          </Suspense>
         </nav>
 
-        <div className="border-t border-border p-3">
+        <div className="space-y-1 border-t border-border p-3">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-foreground"
+          >
+            <ExternalLink className="size-[18px]" />
+            عرض الموقع
+          </a>
           <form action={logout}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-danger-soft hover:text-danger">
-              <LogOut className="size-5" />
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-danger-soft hover:text-danger">
+              <LogOut className="size-[18px]" />
               تسجيل الخروج
             </button>
           </form>
@@ -93,20 +159,16 @@ export function DashboardShell({ children, user }: { children: React.ReactNode; 
           <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="فتح القائمة">
             <Menu className="size-6" />
           </button>
-          <div className="relative hidden max-w-sm flex-1 sm:block">
-            <Search className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted" />
-            <input
-              placeholder="ابحث..."
-              className="w-full rounded-lg border border-border bg-surface-2 py-2 pr-9 pl-3 text-sm outline-none focus:border-primary"
-            />
-          </div>
-          <div className="mr-auto flex items-center gap-3">
-            <button className="relative rounded-lg p-2 text-muted hover:bg-surface-2" aria-label="الإشعارات">
-              <Bell className="size-5" />
-              <span className="absolute top-1.5 left-1.5 size-2 rounded-full bg-danger" />
-            </button>
-            {user}
-          </div>
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener"
+            className="hidden items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm text-muted hover:text-foreground sm:inline-flex"
+          >
+            <ExternalLink className="size-4" />
+            عرض الموقع
+          </a>
+          <div className="mr-auto flex items-center gap-3">{user}</div>
         </header>
 
         <main className="flex-1 p-4 sm:p-6">{children}</main>

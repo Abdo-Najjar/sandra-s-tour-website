@@ -1,6 +1,7 @@
 // Fills the database with sample data. Run with: npm run db:seed
 // Wipes existing rows first.
-import { db, orders, products, sessions, settings, users, type OrderStatus } from "./index";
+import { bookings, db, messages, orders, pages, posts, products, sessions, settings, site, subscribers, tours, users, type OrderStatus } from "./index";
+import { seedWebsite } from "./seed-site";
 import { hashPassword } from "../lib/password";
 
 // Test login password for the seeded admin and editor accounts.
@@ -21,6 +22,13 @@ function sqliteDate(d: Date) {
 }
 
 async function main() {
+  await db.delete(bookings);
+  await db.delete(messages);
+  await db.delete(tours);
+  await db.delete(posts);
+  await db.delete(subscribers);
+  await db.delete(pages);
+  await db.delete(site);
   await db.delete(sessions);
   await db.delete(orders);
   await db.delete(products);
@@ -83,6 +91,8 @@ async function main() {
   }
   rows.sort((a, b) => a.createdAt!.localeCompare(b.createdAt!));
   for (let i = 0; i < rows.length; i += 100) await db.insert(orders).values(rows.slice(i, i + 100));
+
+  await seedWebsite();
 
   console.log(`Logins: ahmad@example.com (admin), sara@example.com (editor). Password from SEED_PASSWORD or the default in seed.ts.`);
   console.log(`Seeded ${inserted.length} products, 8 users, ${rows.length} orders.`);
