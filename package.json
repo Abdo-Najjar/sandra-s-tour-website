@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "i18n:check": "node scripts/i18n-check.mjs",
     "db:push": "tsx src/db/migrate-i18n.ts && drizzle-kit push",
     "db:migrate-i18n": "tsx src/db/migrate-i18n.ts",
     "db:seed": "tsx src/db/seed.ts",

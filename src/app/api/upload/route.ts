@@ -22,16 +22,16 @@ function sniff(b: Uint8Array): string | null {
 
 export async function POST(request: Request) {
   const [user, t] = await Promise.all([getCurrentUser(), getT()]);
-  if (!user) return Response.json({ error: t("Please sign in first", "سجّل الدخول أولاً") }, { status: 401 });
+  if (!user) return Response.json({ error: t("Please sign in first") }, { status: 401 });
 
   const fd = await request.formData().catch(() => null);
   const file = fd?.get("file");
-  if (!(file instanceof File)) return Response.json({ error: t("No file selected", "لم يتم اختيار ملف") }, { status: 400 });
-  if (file.size > MAX_BYTES) return Response.json({ error: t("The image is larger than 5 MB", "حجم الصورة أكبر من 5 ميغابايت") }, { status: 413 });
+  if (!(file instanceof File)) return Response.json({ error: t("No file selected") }, { status: 400 });
+  if (file.size > MAX_BYTES) return Response.json({ error: t("The image is larger than 5 MB") }, { status: 413 });
 
   const bytes = new Uint8Array(await file.arrayBuffer());
   const ext = sniff(bytes);
-  if (!ext) return Response.json({ error: t("The file isn't an image (JPG / PNG / WEBP / GIF)", "الملف ليس صورة (JPG / PNG / WEBP / GIF)") }, { status: 415 });
+  if (!ext) return Response.json({ error: t("The file isn't an image (JPG / PNG / WEBP / GIF)") }, { status: 415 });
 
   const name = `${randomBytes(16).toString("hex")}.${ext}`;
   await mkdir(UPLOAD_DIR, { recursive: true });

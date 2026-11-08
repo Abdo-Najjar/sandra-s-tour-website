@@ -15,7 +15,7 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
   const t = await getT();
   return (
     <>
-      <BackLink href="/admin/site" label={t("Website content", "محتوى الموقع")} />
+      <BackLink href="/admin/site" label={t("Website content")} />
       <Suspense fallback={<ContentSkeleton />}>
         <SectionContent params={params} searchParams={searchParams} />
       </Suspense>
@@ -39,12 +39,12 @@ async function SectionContent({
 
   return (
     <>
-      <PageHeader title={t(...meta.label)} subtitle={t(...meta.description)} />
+      <PageHeader title={t(meta.label)} subtitle={t(meta.description)} />
       {/* Each language has its own copy of the text. */}
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1 text-sm" role="tablist" aria-label={t("Content language", "لغة المحتوى")}>
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1 text-sm" role="tablist" aria-label={t("Content language")}>
         {[
-          { key: "en", label: t("English website", "الموقع الإنجليزي") },
-          { key: "ar", label: t("Arabic website", "الموقع العربي") },
+          { key: "en", label: t("English website") },
+          { key: "ar", label: t("Arabic website") },
         ].map((l) => (
           <Link
             key={l.key}

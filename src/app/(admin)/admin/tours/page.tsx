@@ -15,9 +15,9 @@ export default async function ToursPage() {
   return (
     <>
       <PageHeader
-        title={t("Tours", "الجولات")}
-        subtitle={t("Add tours and edit their prices, photos and itineraries", "أضف جولات جديدة وعدّل أسعارها وصورها وبرامجها")}
-        action={<NewLink href="/admin/tours/new" label={t("New tour", "جولة جديدة")} />}
+        title={t("Tours")}
+        subtitle={t("Add tours and edit their prices, photos and itineraries")}
+        action={<NewLink href="/admin/tours/new" label={t("New tour")} />}
       />
       <Suspense fallback={<ContentSkeleton />}>
         <ToursList />
@@ -29,7 +29,7 @@ export default async function ToursPage() {
 async function ToursList() {
   const [tours, lang, t] = await Promise.all([getAdminTours(), getAdminLang(), getT()]);
   const other = lang === "ar" ? "en" : "ar";
-  if (!tours.length) return <Card className="py-12 text-center text-muted">{t("No tours yet. Add the first one.", "لا توجد جولات بعد. أضف أول جولة.")}</Card>;
+  if (!tours.length) return <Card className="py-12 text-center text-muted">{t("No tours yet. Add the first one.")}</Card>;
 
   return (
     <Card className="overflow-hidden p-0">
@@ -37,10 +37,10 @@ async function ToursList() {
         <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
-              <th className="px-5 py-3 text-start font-medium">{t("Tour", "الجولة")}</th>
-              <th className="px-5 py-3 text-start font-medium">{t("Length", "المدة")}</th>
-              <th className="px-5 py-3 text-start font-medium">{t("Price", "السعر")}</th>
-              <th className="px-5 py-3 text-start font-medium">{t("Bookings", "الحجوزات")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Tour")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Length")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Price")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Bookings")}</th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
@@ -57,11 +57,11 @@ async function ToursList() {
                     </div>
                   </Link>
                 </td>
-                <td data-label={t("Length", "المدة")} className="px-5 py-3 whitespace-nowrap">
-                  {tour.durationDays} {tour.durationDays === 1 ? t("day", "يوم") : t("days", "أيام")}
+                <td data-label={t("Length")} className="px-5 py-3 whitespace-nowrap">
+                  {tour.durationDays} {tour.durationDays === 1 ? t("day") : t("days")}
                 </td>
-                <td data-label={t("Price", "السعر")} className="px-5 py-3 font-semibold">{formatMoney(tour.price)}</td>
-                <td data-label={t("Bookings", "الحجوزات")} className="px-5 py-3">{tour.bookings}</td>
+                <td data-label={t("Price")} className="px-5 py-3 font-semibold">{formatMoney(tour.price)}</td>
+                <td data-label={t("Bookings")} className="px-5 py-3">{tour.bookings}</td>
                 <td className="rtable-end px-5 py-3">
                   <div className="flex justify-end">
                     <TourRowActions id={tour.id} featured={tour.featured} published={tour.published} />

@@ -13,17 +13,17 @@ import { whatsappLink } from "@/lib/site/shape";
 
 export const metadata = { title: "Bookings" };
 
-const sources: Record<string, [en: string, ar: string]> = {
-  contact: ["Contact page", "صفحة التواصل"],
-  tour: ["Tour page", "صفحة جولة"],
-  guide: ["Guide page", "صفحة المرشدة"],
+const sources: Record<string, string> = {
+  contact: "Contact page",
+  tour: "Tour page",
+  guide: "Guide page",
 };
 
 export default async function BookingsPage(props: PageProps<"/admin/bookings">) {
   const t = await getT();
   return (
     <>
-      <PageHeader title={t("Bookings", "الحجوزات")} subtitle={t("Booking requests from the website forms", "طلبات الحجز القادمة من نماذج الموقع")} />
+      <PageHeader title={t("Bookings")} subtitle={t("Booking requests from the website forms")} />
       <Suspense fallback={<ContentSkeleton />}>
         <BookingsContent {...props} />
       </Suspense>
@@ -36,7 +36,7 @@ async function BookingsContent({ searchParams }: PageProps<"/admin/bookings">) {
   const status = BOOKING_STATUSES.includes(raw as BookingStatus) ? (raw as BookingStatus) : undefined;
   const [me, list, counts, t] = await Promise.all([requireUser(), getBookings(status), getBookingCounts(), getT()]);
   const tabs: [string, string, number][] = [
-    ["", t("All", "الكل"), counts.all],
+    ["", t("All"), counts.all],
     ...BOOKING_STATUSES.map((s): [string, string, number] => [s, bookingStatusLabel(s, t), counts[s]]),
   ];
 
@@ -56,7 +56,7 @@ async function BookingsContent({ searchParams }: PageProps<"/admin/bookings">) {
         ))}
       </div>
 
-      {list.length === 0 && <Card className="py-12 text-center text-muted">{t("No bookings here.", "لا توجد حجوزات هنا.")}</Card>}
+      {list.length === 0 && <Card className="py-12 text-center text-muted">{t("No bookings here.")}</Card>}
 
       <div className="grid gap-3">
         {list.map((b) => (
@@ -68,27 +68,29 @@ async function BookingsContent({ searchParams }: PageProps<"/admin/bookings">) {
                   <BookingStatusSelect key={b.status} id={b.id} status={b.status} />
                 </div>
                 <div className="mt-1 text-start text-sm text-muted">
-                  {b.tourTitle || t("Custom / not chosen yet", "رحلة مخصصة / غير محددة")}
+                  {b.tourTitle || t("Custom / not chosen yet")}
                   {b.tourClass && ` · ${b.tourClass}`}
                 </div>
               </div>
               <div className="text-end text-xs text-muted">
                 <div dir="ltr">{formatDate(b.createdAt)}</div>
-                <div>{sources[b.source] ? t(...sources[b.source]) : b.source}</div>
+                <div>{sources[b.source] ? t(sources[b.source]) : b.source}</div>
               </div>
             </div>
 
             <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              {b.arrivalDate && <Info label={t("Arrival", "الوصول")} value={b.arrivalDate} />}
+              {b.arrivalDate && <Info label={t("Arrival")} value={b.arrivalDate} />}
               <Info
-                label={t("Guests", "الأشخاص")}
-                value={t(
-                  `${b.adults} adult${b.adults === 1 ? "" : "s"}${b.children ? ` + ${b.children} child${b.children === 1 ? "" : "ren"}` : ""}`,
-                  `${b.adults} بالغ${b.children ? ` + ${b.children} طفل` : ""}`,
-                )}
+                label={t("Guests")}
+                value={[
+                  t(b.adults === 1 ? "{n} adult" : "{n} adults", { n: b.adults }),
+                  b.children ? t(b.children === 1 ? "{n} child" : "{n} children", { n: b.children }) : "",
+                ]
+                  .filter(Boolean)
+                  .join(" + ")}
               />
-              {b.nationality && <Info label={t("Nationality", "الجنسية")} value={b.nationality} />}
-              {b.flexibility && <Info label={t("Flexibility", "المرونة")} value={b.flexibility} />}
+              {b.nationality && <Info label={t("Nationality")} value={b.nationality} />}
+              {b.flexibility && <Info label={t("Flexibility")} value={b.flexibility} />}
             </dl>
             {b.note && (
               <p className="mt-3 rounded-lg bg-surface-2 p-3 text-sm whitespace-pre-line" dir="auto">

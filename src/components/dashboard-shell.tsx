@@ -24,27 +24,27 @@ import { logout } from "@/lib/actions";
 import { AdminLangSwitch, useT } from "@/components/admin/admin-lang";
 import type { T } from "@/lib/admin/i18n";
 
-type NavItem = { href: string; label: [en: string, ar: string]; icon: LucideIcon };
+type NavItem = { href: string; label: string; icon: LucideIcon };
 
-const groups: { title?: [en: string, ar: string]; items: NavItem[] }[] = [
-  { items: [{ href: "/admin", label: ["Overview", "الرئيسية"], icon: LayoutDashboard }] },
+const groups: { title?: string; items: NavItem[] }[] = [
+  { items: [{ href: "/admin", label: "Overview", icon: LayoutDashboard }] },
   {
-    title: ["Website", "الموقع"],
+    title: "Website",
     items: [
-      { href: "/admin/site", label: ["Website content", "محتوى الموقع"], icon: PanelsTopLeft },
-      { href: "/admin/tours", label: ["Tours", "الجولات"], icon: MapIcon },
-      { href: "/admin/blog", label: ["Blog", "المدونة"], icon: Newspaper },
-      { href: "/admin/bookings", label: ["Bookings", "الحجوزات"], icon: CalendarCheck },
-      { href: "/admin/messages", label: ["Messages & partners", "الرسائل والشراكات"], icon: Mail },
-      { href: "/admin/subscribers", label: ["Subscribers", "المشتركون"], icon: UsersRound },
-      { href: "/admin/pages", label: ["Extra pages", "صفحات إضافية"], icon: FileText },
+      { href: "/admin/site", label: "Website content", icon: PanelsTopLeft },
+      { href: "/admin/tours", label: "Tours", icon: MapIcon },
+      { href: "/admin/blog", label: "Blog", icon: Newspaper },
+      { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
+      { href: "/admin/messages", label: "Messages & partners", icon: Mail },
+      { href: "/admin/subscribers", label: "Subscribers", icon: UsersRound },
+      { href: "/admin/pages", label: "Extra pages", icon: FileText },
     ],
   },
   {
-    title: ["System", "النظام"],
+    title: "System",
     items: [
-      { href: "/admin/users", label: ["Users", "المستخدمون"], icon: Users },
-      { href: "/admin/settings", label: ["Settings", "الإعدادات"], icon: Settings },
+      { href: "/admin/users", label: "Users", icon: Users },
+      { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
   },
 ];
@@ -60,7 +60,7 @@ function NavGroups({ pathname, badges, onNavigate, t }: { pathname: string; badg
     <>
       {groups.map((g, i) => (
         <div key={i}>
-          {g.title && <div className="mb-1.5 px-3 text-[11px] font-bold tracking-wide text-accent">{t(...g.title)}</div>}
+          {g.title && <div className="mb-1.5 px-3 text-[11px] font-bold tracking-wide text-accent">{t(g.title)}</div>}
           <div className="space-y-0.5">
             {g.items.map(({ href, label, icon: Icon }) => {
               const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
@@ -74,7 +74,7 @@ function NavGroups({ pathname, badges, onNavigate, t }: { pathname: string; badg
                   }`}
                 >
                   <Icon className="size-[18px]" />
-                  <span className="flex-1">{t(...label)}</span>
+                  <span className="flex-1">{t(label)}</span>
                   {badges[href]}
                 </Link>
               );
@@ -116,7 +116,7 @@ export function DashboardShell({
   return (
     <div className="flex min-h-screen">
       {open && (
-        <button aria-label={t("Close menu", "إغلاق القائمة")} className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setOpen(false)} />
+        <button aria-label={t("Close menu")} className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
       <aside
@@ -129,11 +129,11 @@ export function DashboardShell({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/site/logo.png" alt="" className="size-10 rounded-full border border-accent/40 bg-white object-contain p-0.5" />
             <span className="leading-tight">
-              <span className="block font-bold">{t("Dashboard", "لوحة التحكم")}</span>
+              <span className="block font-bold">{t("Dashboard")}</span>
               <span className="block text-xs text-accent" dir="ltr">Syria Guide Tours</span>
             </span>
           </Link>
-          <button className="-me-2 flex size-10 items-center justify-center rounded-lg hover:bg-surface-2 lg:hidden" onClick={() => setOpen(false)} aria-label={t("Close", "إغلاق")}>
+          <button className="-me-2 flex size-10 items-center justify-center rounded-lg hover:bg-surface-2 lg:hidden" onClick={() => setOpen(false)} aria-label={t("Close")}>
             <X className="size-5" />
           </button>
         </div>
@@ -153,12 +153,12 @@ export function DashboardShell({
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-foreground"
           >
             <ExternalLink className="size-[18px]" />
-            {t("View website", "عرض الموقع")}
+            {t("View website")}
           </a>
           <form action={logout}>
             <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-danger-soft hover:text-danger">
               <LogOut className="size-[18px] rtl:-scale-x-100" />
-              {t("Log out", "تسجيل الخروج")}
+              {t("Log out")}
             </button>
           </form>
         </div>
@@ -166,7 +166,7 @@ export function DashboardShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur sm:px-6">
-          <button className="-ms-2 flex size-10 items-center justify-center rounded-lg hover:bg-surface-2 lg:hidden" onClick={() => setOpen(true)} aria-label={t("Open menu", "فتح القائمة")} aria-expanded={open}>
+          <button className="-ms-2 flex size-10 items-center justify-center rounded-lg hover:bg-surface-2 lg:hidden" onClick={() => setOpen(true)} aria-label={t("Open menu")} aria-expanded={open}>
             <Menu className="size-6" />
           </button>
           <a
@@ -176,7 +176,7 @@ export function DashboardShell({
             className="hidden items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm text-muted hover:text-foreground sm:inline-flex"
           >
             <ExternalLink className="size-4" />
-            {t("View website", "عرض الموقع")}
+            {t("View website")}
           </a>
           <div className="ms-auto flex items-center gap-2 sm:gap-3">
             <AdminLangSwitch />

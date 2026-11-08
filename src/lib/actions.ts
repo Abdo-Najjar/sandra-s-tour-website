@@ -24,7 +24,7 @@ import type { T } from "@/lib/admin/i18n";
 
 export type ActionState = { ok?: boolean; error?: string; email?: string } | undefined;
 
-const noPermission = (t: T) => t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء");
+const noPermission = (t: T) => t("You don't have permission to do this");
 const str = (fd: FormData, key: string) => String(fd.get(key) ?? "").trim();
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
@@ -40,21 +40,21 @@ export async function login(_: ActionState, fd: FormData): Promise<ActionState> 
   const next = str(fd, "next");
   const t = await getT();
 
-  if (!email || !password) return { error: t("Enter your email and password", "أدخل البريد الإلكتروني وكلمة المرور"), email };
+  if (!email || !password) return { error: t("Enter your email and password"), email };
 
   // Slow down password guessing: 10 tries per 15 minutes per email and 30 per IP.
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
   const windowMs = 15 * 60 * 1000;
   if (!rateLimit(`login:${email}`, 10, windowMs) || !rateLimit(`login-ip:${ip}`, 30, windowMs))
-    return { error: t("Too many attempts. Try again in 15 minutes", "محاولات كثيرة. حاول مرة أخرى بعد 15 دقيقة"), email };
+    return { error: t("Too many attempts. Try again in 15 minutes"), email };
 
   const user = await db.query.users.findFirst({ where: eq(users.email, email) });
   const valid = await verifyPassword(password, user?.passwordHash ?? (await dummyHash));
 
-  if (!user || !user.passwordHash || !valid) return { error: t("Wrong email or password", "البريد الإلكتروني أو كلمة المرور غير صحيحة"), email };
-  if (!user.active) return { error: t("This account is disabled", "هذا الحساب موقوف"), email };
-  if (!DASHBOARD_ROLES.includes(user.role)) return { error: t("This account can't sign in to the dashboard", "هذا الحساب لا يملك صلاحية دخول لوحة التحكم"), email };
+  if (!user || !user.passwordHash || !valid) return { error: t("Wrong email or password"), email };
+  if (!user.active) return { error: t("This account is disabled"), email };
+  if (!DASHBOARD_ROLES.includes(user.role)) return { error: t("This account can't sign in to the dashboard"), email };
 
   clearRateLimit(`login:${email}`);
 
@@ -79,10 +79,10 @@ export async function changePassword(_: ActionState, fd: FormData): Promise<Acti
 
   const row = await db.query.users.findFirst({ where: eq(users.id, me.id) });
   if (!row?.passwordHash || !(await verifyPassword(current, row.passwordHash)))
-    return { error: t("Your current password is wrong", "كلمة المرور الحالية غير صحيحة") };
+    return { error: t("Your current password is wrong") };
   if (next.length < MIN_PASSWORD_LENGTH)
-    return { error: t(`The new password needs at least ${MIN_PASSWORD_LENGTH} characters`, `كلمة المرور الجديدة يجب أن تكون ${MIN_PASSWORD_LENGTH} أحرف على الأقل`) };
-  if (next !== confirm) return { error: t("The two passwords don't match", "كلمتا المرور غير متطابقتين") };
+    return { error: t("The new password needs at least {n} characters", { n: MIN_PASSWORD_LENGTH }) };
+  if (next !== confirm) return { error: t("The two passwords don't match") };
 
   await db.update(users).set({ passwordHash: await hashPassword(next) }).where(eq(users.id, me.id));
   // Sign out other devices, then start a fresh session here.
@@ -102,16 +102,16 @@ export async function createUser(_: ActionState, fd: FormData): Promise<ActionSt
   const role = str(fd, "role") as UserRole;
   const password = String(fd.get("password") ?? "");
 
-  if (name.length < 2) return { error: t("The name is too short", "الاسم قصير جداً") };
-  if (!isEmail(email)) return { error: t("The email address isn't valid", "البريد الإلكتروني غير صالح") };
-  if (!USER_ROLES.includes(role)) return { error: t("Invalid role", "الدور غير صالح") };
+  if (name.length < 2) return { error: t("The name is too short") };
+  if (!isEmail(email)) return { error: t("The email address isn't valid") };
+  if (!USER_ROLES.includes(role)) return { error: t("Invalid role") };
   if (password && password.length < MIN_PASSWORD_LENGTH)
-    return { error: t(`The password needs at least ${MIN_PASSWORD_LENGTH} characters`, `كلمة المرور يجب أن تكون ${MIN_PASSWORD_LENGTH} أحرف على الأقل`) };
+    return { error: t("The password needs at least {n} characters", { n: MIN_PASSWORD_LENGTH }) };
   if (!password && DASHBOARD_ROLES.includes(role))
-    return { error: t("Admins and editors need a password to sign in", "المدير والمحرر يحتاجان كلمة مرور للدخول") };
+    return { error: t("Admins and editors need a password to sign in") };
 
   const existing = await db.query.users.findFirst({ where: eq(users.email, email) });
-  if (existing) return { error: t("This email is already in use", "هذا البريد مستخدم مسبقاً") };
+  if (existing) return { error: t("This email is already in use") };
 
   await db.insert(users).values({
     name,

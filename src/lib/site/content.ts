@@ -687,15 +687,14 @@ export function siteDataBoth(stored: unknown): Tr<SiteContent> {
 export const defaultSiteData = (): Tr<SiteContent> => ({ en: defaultSiteContent, ar: defaultSiteContentAr });
 
 // The dashboard edits the content one section at a time.
-type Pair = [en: string, ar: string];
-export const SITE_SECTIONS: { key: SiteSection; label: Pair; description: Pair; preview: string }[] = [
-  { key: "general", label: ["General & menu", "عام والقائمة"], description: ["Site name, logo, top menu and booking button", "اسم الموقع، الشعار، القائمة العلوية وزر الحجز"], preview: "/" },
-  { key: "contact", label: ["Contact details", "معلومات التواصل"], description: ["WhatsApp, phones, email and offices", "واتساب، الهواتف، البريد والمكاتب"], preview: "/contact" },
-  { key: "home", label: ["Home page", "الصفحة الرئيسية"], description: ["Hero, about, why us, reviews and booking call", "الواجهة، من نحن، لماذا نحن، آراء الزوار والدعوة للحجز"], preview: "/" },
-  { key: "tours", label: ["Tours page", "صفحة الجولات"], description: ["Header, categories, private tours and what's included", "رأس الصفحة، التصنيفات، الجولات الخاصة وما يشمله السعر"], preview: "/tours" },
-  { key: "about", label: ["About page", "صفحة من نحن"], description: ["Vision and mission, founder, team, licences and safety", "الرؤية والرسالة، المؤسسة، الفريق، الاعتمادات والأمان"], preview: "/about" },
-  { key: "guide", label: ["Guide page", "صفحة المرشدة"], description: ["Sandra's profile, services, booking and guide network", "ملف ساندرا، ما تقدمه، الحجز وشبكة المرشدين"], preview: "/guide" },
-  { key: "contactPage", label: ["Contact & booking page", "صفحة التواصل والحجز"], description: ["Booking form, steps, partnerships, routes and FAQ", "نموذج الحجز، الخطوات، الشراكات، المسارات والأسئلة الشائعة"], preview: "/contact" },
-  { key: "blog", label: ["Blog page", "صفحة المدونة"], description: ["Blog header, categories, editorial standards and newsletter", "رأس المدونة، التصنيفات، معايير النشر والنشرة البريدية"], preview: "/blog" },
-  { key: "footer", label: ["Footer", "أسفل الموقع"], description: ["Summary, links, newsletter and copyright", "النبذة، الروابط، النشرة البريدية وحقوق النشر"], preview: "/" },
+export const SITE_SECTIONS: { key: SiteSection; label: string; description: string; preview: string }[] = [
+  { key: "general", label: "General & menu", description: "Site name, logo, top menu and booking button", preview: "/" },
+  { key: "contact", label: "Contact details", description: "WhatsApp, phones, email and offices", preview: "/contact" },
+  { key: "home", label: "Home page", description: "Hero, about, why us, reviews and booking call", preview: "/" },
+  { key: "tours", label: "Tours page", description: "Header, categories, private tours and what's included", preview: "/tours" },
+  { key: "about", label: "About page", description: "Vision and mission, founder, team, licences and safety", preview: "/about" },
+  { key: "guide", label: "Guide page", description: "Sandra's profile, services, booking and guide network", preview: "/guide" },
+  { key: "contactPage", label: "Contact & booking page", description: "Booking form, steps, partnerships, routes and FAQ", preview: "/contact" },
+  { key: "blog", label: "Blog page", description: "Blog header, categories, editorial standards and newsletter", preview: "/blog" },
+  { key: "footer", label: "Footer", description: "Summary, links, newsletter and copyright", preview: "/" },
 ];

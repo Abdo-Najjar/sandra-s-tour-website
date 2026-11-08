@@ -13,15 +13,15 @@ import { whatsappLink } from "@/lib/site/shape";
 
 export const metadata = { title: "Messages & partners" };
 
-const kindLabel = (k: MessageKind, t: T) => (k === "partnership" ? t("Partnership request", "طلب شراكة") : t("Message", "رسالة"));
+const kindLabel = (k: MessageKind, t: T) => (k === "partnership" ? t("Partnership request") : t("Message"));
 
 export default async function MessagesPage(props: PageProps<"/admin/messages">) {
   const t = await getT();
   return (
     <>
       <PageHeader
-        title={t("Messages & partners", "الرسائل والشراكات")}
-        subtitle={t("Visitor messages and partnership requests from guides and hotels", "رسائل الزوار وطلبات الشراكة مع المرشدين والفنادق")}
+        title={t("Messages & partners")}
+        subtitle={t("Visitor messages and partnership requests from guides and hotels")}
       />
       <Suspense fallback={<ContentSkeleton />}>
         <MessagesContent {...props} />
@@ -34,7 +34,7 @@ async function MessagesContent({ searchParams }: PageProps<"/admin/messages">) {
   const raw = (await searchParams).kind;
   const kind = MESSAGE_KINDS.includes(raw as MessageKind) ? (raw as MessageKind) : undefined;
   const [me, list, t] = await Promise.all([requireUser(), getMessages(kind), getT()]);
-  const tabs: [string, string][] = [["", t("All", "الكل")], ...MESSAGE_KINDS.map((k): [string, string] => [k, kindLabel(k, t)])];
+  const tabs: [string, string][] = [["", t("All")], ...MESSAGE_KINDS.map((k): [string, string] => [k, kindLabel(k, t)])];
 
   return (
     <>
@@ -52,7 +52,7 @@ async function MessagesContent({ searchParams }: PageProps<"/admin/messages">) {
         ))}
       </div>
 
-      {list.length === 0 && <Card className="py-12 text-center text-muted">{t("No messages.", "لا توجد رسائل.")}</Card>}
+      {list.length === 0 && <Card className="py-12 text-center text-muted">{t("No messages.")}</Card>}
 
       <div className="grid gap-3">
         {list.map((m) => (
@@ -60,7 +60,7 @@ async function MessagesContent({ searchParams }: PageProps<"/admin/messages">) {
             <div className="flex flex-wrap items-start gap-3">
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  {!m.read && <span className="size-2 rounded-full bg-primary" aria-label={t("Unread", "غير مقروءة")} />}
+                  {!m.read && <span className="size-2 rounded-full bg-primary" aria-label={t("Unread")} />}
                   <h2 className="font-bold" dir="auto">{m.name}</h2>
                   <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{kindLabel(m.kind, t)}</span>
                 </div>

@@ -11,8 +11,8 @@ export default async function EditTourPage(props: PageProps<"/admin/tours/[id]">
   const t = await getT();
   return (
     <>
-      <BackLink href="/admin/tours" label={t("Tours", "الجولات")} />
-      <PageHeader title={t("Edit tour", "تعديل جولة")} />
+      <BackLink href="/admin/tours" label={t("Tours")} />
+      <PageHeader title={t("Edit tour")} />
       <Suspense fallback={<ContentSkeleton />}>
         <Content {...props} />
       </Suspense>

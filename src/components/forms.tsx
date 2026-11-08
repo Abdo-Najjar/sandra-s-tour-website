@@ -84,7 +84,7 @@ function DialogForm({
         <form ref={formRef} onSubmit={onSubmit} className="grid gap-4 p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">{title}</h2>
-            <button type="button" onClick={() => dialogRef.current?.close()} aria-label={t("Close", "إغلاق")} className="text-muted">
+            <button type="button" onClick={() => dialogRef.current?.close()} aria-label={t("Close")} className="text-muted">
               <X className="size-5" />
             </button>
           </div>
@@ -92,10 +92,10 @@ function DialogForm({
           <FormError state={state} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => dialogRef.current?.close()}>
-              {t("Cancel", "إلغاء")}
+              {t("Cancel")}
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? t("Saving…", "جارٍ الحفظ...") : t("Save", "حفظ")}
+              {pending ? t("Saving…") : t("Save")}
             </Button>
           </div>
         </form>
@@ -107,21 +107,21 @@ function DialogForm({
 export function NewUserButton() {
   const t = useT();
   return (
-    <DialogForm trigger={t("New user", "مستخدم جديد")} title={t("Add a user", "إضافة مستخدم")} action={createUser}>
-      <Field label={t("Name", "الاسم")}>
+    <DialogForm trigger={t("New user")} title={t("Add a user")} action={createUser}>
+      <Field label={t("Name")}>
         <input name="name" required className={inputCls} />
       </Field>
-      <Field label={t("Email", "البريد الإلكتروني")}>
+      <Field label={t("Email")}>
         <input name="email" type="email" required dir="ltr" className={inputCls} />
       </Field>
-      <Field label={t("Role", "الدور")}>
+      <Field label={t("Role")}>
         <select name="role" defaultValue="user" className={inputCls}>
           {USER_ROLES.map((role) => (
             <option key={role} value={role}>{roleLabel(role, t)}</option>
           ))}
         </select>
       </Field>
-      <Field label={t("Password (needed for admins and editors)", "كلمة المرور (مطلوبة للمدير والمحرر)")}>
+      <Field label={t("Password (needed for admins and editors)")}>
         <input name="password" type="password" autoComplete="new-password" minLength={8} dir="ltr" className={inputCls} />
       </Field>
     </DialogForm>
@@ -145,27 +145,27 @@ export function ChangePasswordForm() {
       }}
       className="grid max-w-3xl gap-4 rounded-xl border border-border bg-surface p-5"
     >
-      <h2 className="font-bold">{t("Change password", "تغيير كلمة المرور")}</h2>
+      <h2 className="font-bold">{t("Change password")}</h2>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label={t("Current password", "كلمة المرور الحالية")}>
+        <Field label={t("Current password")}>
           <input name="current" type="password" autoComplete="current-password" required dir="ltr" className={inputCls} />
         </Field>
-        <Field label={t("New password", "كلمة المرور الجديدة")}>
+        <Field label={t("New password")}>
           <input name="next" type="password" autoComplete="new-password" minLength={8} required dir="ltr" className={inputCls} />
         </Field>
-        <Field label={t("Confirm password", "تأكيد كلمة المرور")}>
+        <Field label={t("Confirm password")}>
           <input name="confirm" type="password" autoComplete="new-password" minLength={8} required dir="ltr" className={inputCls} />
         </Field>
       </div>
       <FormError state={state} />
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? t("Saving…", "جارٍ الحفظ...") : t("Change password", "تغيير كلمة المرور")}
+          {pending ? t("Saving…") : t("Change password")}
         </Button>
         {done && (
           <span className="flex items-center gap-1 text-sm font-medium text-success">
             <Check className="size-4" />
-            {t("Password changed. Other devices were signed out.", "تم تغيير كلمة المرور، وتم تسجيل خروج الأجهزة الأخرى")}
+            {t("Password changed. Other devices were signed out.")}
           </span>
         )}
       </div>

@@ -15,9 +15,9 @@ export default async function BlogAdminPage() {
   return (
     <>
       <PageHeader
-        title={t("Blog", "المدونة")}
-        subtitle={t("Write, edit and publish articles", "اكتب المقالات وعدّلها وانشرها")}
-        action={<NewLink href="/admin/blog/new" label={t("New article", "مقال جديد")} />}
+        title={t("Blog")}
+        subtitle={t("Write, edit and publish articles")}
+        action={<NewLink href="/admin/blog/new" label={t("New article")} />}
       />
       <Suspense fallback={<ContentSkeleton />}>
         <PostsList />
@@ -28,16 +28,16 @@ export default async function BlogAdminPage() {
 
 async function PostsList() {
   const [posts, lang, t] = await Promise.all([getAdminPosts(), getAdminLang(), getT()]);
-  if (!posts.length) return <Card className="py-12 text-center text-muted">{t("No articles yet.", "لا توجد مقالات بعد.")}</Card>;
+  if (!posts.length) return <Card className="py-12 text-center text-muted">{t("No articles yet.")}</Card>;
   return (
     <Card className="overflow-hidden p-0">
       <div className="overflow-x-auto">
         <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
-              <th className="px-5 py-3 text-start font-medium">{t("Article", "المقال")}</th>
-              <th className="px-5 py-3 text-start font-medium">{t("Category", "التصنيف")}</th>
-              <th className="px-5 py-3 text-start font-medium">{t("Date", "التاريخ")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Article")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Category")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Date")}</th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
@@ -57,8 +57,8 @@ async function PostsList() {
                     </div>
                   </Link>
                 </td>
-                <td data-label={t("Category", "التصنيف")} className="px-5 py-3" dir="auto">{pick(p.category, lang)}</td>
-                <td data-label={t("Date", "التاريخ")} className="px-5 py-3 whitespace-nowrap text-muted"><span dir="ltr">{p.publishedAt}</span></td>
+                <td data-label={t("Category")} className="px-5 py-3" dir="auto">{pick(p.category, lang)}</td>
+                <td data-label={t("Date")} className="px-5 py-3 whitespace-nowrap text-muted"><span dir="ltr">{p.publishedAt}</span></td>
                 <td className="rtable-end px-5 py-3">
                   <div className="flex justify-end">
                     <PostRowActions id={p.id} published={p.published} />

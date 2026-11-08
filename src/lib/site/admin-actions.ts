@@ -65,11 +65,11 @@ async function uniqueSlug(table: typeof tours | typeof posts | typeof pages, wan
 
 export async function saveSiteSection(section: SiteSection, lang: Lang, _: ActionState, fd: FormData): Promise<ActionState> {
   const t = await getT();
-  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
-  if (!(section in defaultSiteContent) || !isLang(lang)) return { error: t("Unknown section", "قسم غير معروف") };
+  if (!(await authorize())) return { error: t("You don't have permission to do this") };
+  if (!(section in defaultSiteContent) || !isLang(lang)) return { error: t("Unknown section") };
 
   const value = parseJson(fd.get("data"));
-  if (value === undefined) return { error: t("Couldn't read the form data", "تعذر قراءة البيانات") };
+  if (value === undefined) return { error: t("Couldn't read the form data") };
 
   const id = SITE_ROW_ID;
   const row = await db.query.site.findFirst({ where: eq(site.id, id) });
@@ -103,14 +103,14 @@ export async function resetSiteSection(section: SiteSection, lang: Lang) {
 
 export async function saveTour(id: number | null, _: ActionState, fd: FormData): Promise<ActionState> {
   const t = await getT();
-  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
+  if (!(await authorize())) return { error: t("You don't have permission to do this") };
 
   const title = str(fd, "title", 200);
   const price = num(fd, "price");
   const durationDays = num(fd, "durationDays");
-  if (!title) return { error: t("Enter the tour name", "اكتب اسم الجولة") };
-  if (!(price >= 0)) return { error: t("The price isn't valid", "السعر غير صحيح") };
-  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 365) return { error: t("Days must be between 1 and 365", "عدد الأيام يجب أن يكون بين 1 و 365") };
+  if (!title) return { error: t("Enter the tour name") };
+  if (!(price >= 0)) return { error: t("The price isn't valid") };
+  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 365) return { error: t("Days must be between 1 and 365") };
 
   const values = {
     title: tr(title, str(fd, "arTitle", 200)),
@@ -159,10 +159,10 @@ export async function deleteTour(id: number) {
 
 export async function savePost(id: number | null, _: ActionState, fd: FormData): Promise<ActionState> {
   const t = await getT();
-  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
+  if (!(await authorize())) return { error: t("You don't have permission to do this") };
 
   const title = str(fd, "title", 300);
-  if (!title) return { error: t("Enter the article title", "اكتب عنوان المقال") };
+  if (!title) return { error: t("Enter the article title") };
   const date = str(fd, "publishedAt", 10);
 
   const values = {
@@ -210,10 +210,10 @@ export async function deletePost(id: number) {
 
 export async function savePage(id: number | null, _: ActionState, fd: FormData): Promise<ActionState> {
   const t = await getT();
-  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
+  if (!(await authorize())) return { error: t("You don't have permission to do this") };
 
   const title = str(fd, "title", 200);
-  if (!title) return { error: t("Enter the page title", "اكتب عنوان الصفحة") };
+  if (!title) return { error: t("Enter the page title") };
   const values = {
     title: tr(title, str(fd, "arTitle", 200)),
     slug: await uniqueSlug(pages, str(fd, "slug", 100) || title, id ?? undefined),

@@ -22,13 +22,13 @@ async function UsersContent() {
   return (
     <>
       <PageHeader
-        title={t("Users", "المستخدمون")}
-        subtitle={t(`${active} active of ${users.length}`, `${active} نشط من أصل ${users.length}`)}
+        title={t("Users")}
+        subtitle={t("{active} active of {total}", { active, total: users.length })}
         action={isAdmin ? <NewUserButton /> : undefined}
       />
       {!isAdmin && (
         <p className="mb-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
-          {t("You can only view users. Only an admin can change them.", "يمكنك عرض المستخدمين فقط. التعديل متاح للمدير.")}
+          {t("You can only view users. Only an admin can change them.")}
         </p>
       )}
       <Card className="overflow-hidden p-0">

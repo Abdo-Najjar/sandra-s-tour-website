@@ -9,8 +9,8 @@ export default async function NewPage() {
   const t = await getT();
   return (
     <>
-      <BackLink href="/admin/blog" label={t("Blog", "المدونة")} />
-      <PageHeader title={t("New article", "مقال جديد")} />
+      <BackLink href="/admin/blog" label={t("Blog")} />
+      <PageHeader title={t("New article")} />
       <PostForm post={null} />
     </>
   );

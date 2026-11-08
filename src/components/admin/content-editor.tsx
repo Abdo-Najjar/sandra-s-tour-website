@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, ImageUp, Loader2, Plus, Trash2 } from "lucide-react";
 import { blank } from "@/lib/site/shape";
 import { useAdminLang, useT } from "@/components/admin/admin-lang";
-import type { AdminLang } from "@/lib/admin/i18n";
+import type { AdminLang, T } from "@/lib/admin/i18n";
+import ar from "@/messages/ar.json";
 
 // A form editor for any JSON value, driven by a template of the same shape
 // (see lib/site/content.ts and lib/site/tour.ts). The current value is kept
@@ -17,36 +18,8 @@ export const inputCls =
 
 // ---------- Labels ----------
 
-const WORDS: Record<string, string> = {
-  about: "من نحن", accreditations: "الاعتمادات", address: "العنوان", all: "الكل", assist: "المساعدة",
-  badge: "الشارة", badges: "الشارات", banner: "الشريط", benefits: "المزايا", bespoke: "الجولات الخاصة",
-  blog: "المدونة", body: "النص", book: "الحجز", booking: "الحجز", bottom: "السفلي", button: "زر",
-  caption: "تعليق الصورة", card: "البطاقة", categories: "التصنيفات", checklist: "قائمة النقاط", checks: "النقاط",
-  chip: "الوسم", class: "الفئة", classes: "الفئات", contact: "التواصل", copyright: "حقوق النشر",
-  credentials: "المؤهلات", creds: "المؤهلات", cta: "الدعوة للحجز", custom: "الجولة المخصصة", date: "التاريخ",
-  day: "اليوم", departure: "موعد الانطلاق", description: "الوصف", detail: "صفحة الجولة", details: "التفاصيل",
-  distance: "المسافة", duration: "المدة", education: "التعليم", email: "البريد الإلكتروني", emblem: "الشعار",
-  empty: "الحالة الفارغة", en: "إنجليزي", excludes: "لا يشمل", eyebrow: "العنوان الصغير", faq: "الأسئلة الشائعة",
-  filters: "الفلاتر", flex: "المرونة", flexibility: "المرونة", footer: "أسفل الموقع", form: "النموذج",
-  founder: "المؤسسة", gallery: "معرض الصور", general: "عام", grid: "الشبكة", group: "المجموعة", groups: "المجموعات",
-  guide: "المرشد", hero: "الواجهة", highlight: "مميز", highlights: "أبرز المحطات", home: "الرئيسية", hours: "ساعات العمل",
-  href: "الرابط", icon: "الأيقونة", image: "الصورة", includes: "يشمل", inclusions: "ما يشمله السعر",
-  issue: "العدد", items: "العناصر", itinerary: "برنامج الأيام", key: "المعرّف", kicker: "العنوان الصغير",
-  label: "النص", languages: "اللغات", link: "الرابط", links: "الروابط", logistics: "الترتيبات", logo: "الشعار",
-  map: "الخريطة", members: "الأعضاء", menu: "القائمة", mission: "الرسالة", multi: "متعددة", name: "الاسم",
-  network: "الشبكة", newsletter: "النشرة البريدية", note: "ملاحظة", notes: "ملاحظات", notice: "التنبيه",
-  offers: "الخدمات", offices: "المكاتب", options: "الخيارات", overview: "نظرة عامة", pace: "الإيقاع",
-  paragraphs: "الفقرات", partnership: "الشراكات", partnerships: "الشراكات", perks: "المزايا", phones: "الهواتف",
-  placeholder: "النص التوضيحي", primary: "الأساسي", profile: "الملف", purpose: "الهدف", q: "السؤال", a: "الجواب",
-  question: "السؤال", quote: "الاقتباس", rating: "التقييم", regions: "المناطق", related: "ذات صلة",
-  response: "الرد", reviews: "عدد المراجعات", role: "الصفة", route: "المسار", routes: "المسارات",
-  safety: "الأمان", scheduled: "الجولات المجدولة", seal: "الختم", search: "البحث", secondary: "الثانوي",
-  seo: "محركات البحث", specs: "المواصفات", standards: "المعايير", stat: "الرقم", stats: "الأرقام",
-  status: "الحالة", steps: "الخطوات", submit: "زر الإرسال", subtitle: "العنوان الفرعي", success: "رسالة النجاح",
-  tag: "الوسم", tagline: "الشعار النصي", team: "الفريق", testimonials: "آراء الزوار", text: "النص",
-  title: "العنوان", tour: "الجولة", tours: "الجولات", value: "القيمة", values: "القيم", visa: "التأشيرة",
-  vision: "الرؤية", whatsapp: "واتساب", why: "لماذا نحن", answer: "الجواب",
-};
+// Arabic words for field names live in src/messages/ar.json ("fields").
+const WORDS: Record<string, string> = ar.fields;
 
 // English names that aren't just the field name with spaces.
 const EN_WORDS: Record<string, string> = {
@@ -56,17 +29,17 @@ const EN_WORDS: Record<string, string> = {
 
 // "seoTitle" -> "SEO title" / "عنوان محركات البحث"; a trailing "Ar" marks the Arabic copy.
 export function labelFor(key: string, lang: AdminLang = "en") {
-  const ar = /Ar$/.test(key) && key !== "Ar";
-  const base = ar ? key.slice(0, -2) : key;
+  const isAr = /Ar$/.test(key) && key !== "Ar";
+  const base = isAr ? key.slice(0, -2) : key;
   const words = base.split(/(?=[A-Z])/).map((w) => w.toLowerCase());
   if (lang === "en") {
     const text = words.map((w) => EN_WORDS[w] ?? w).join(" ");
     const label = text.charAt(0).toUpperCase() + text.slice(1);
-    return ar ? `${label} (Arabic)` : label;
+    return isAr ? `${label} (Arabic)` : label;
   }
   const known = words.every((w) => WORDS[w]);
   const text = known ? words.reverse().map((w) => WORDS[w]).join(" ") : base;
-  return ar ? `${text} (عربي)` : text;
+  return isAr ? `${text} (${WORDS.arabic})` : text;
 }
 
 function useLabel() {
@@ -124,7 +97,7 @@ export function ImageInput({
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-sm hover:bg-surface-2 disabled:opacity-60"
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <ImageUp className="size-4" />}
-            {t("Upload", "رفع")}
+            {t("Upload")}
           </button>
         </div>
         {error && <p className="text-xs text-danger">{error}</p>}
@@ -140,7 +113,7 @@ export function ImageInput({
             setBusy(true);
             setError("");
             try {
-              onChange(await uploadImage(file, t("Couldn't upload the image", "تعذر رفع الصورة")));
+              onChange(await uploadImage(file, t("Couldn't upload the image")));
             } catch (err) {
               setError((err as Error).message);
             } finally {
@@ -166,7 +139,7 @@ function TextField({ k, value, onChange }: { k: string; value: string; onChange:
         </span>
         <input dir="ltr" value={value} onChange={(e) => onChange(e.target.value)} className={inputCls} />
         <a href="https://fonts.google.com/icons" target="_blank" rel="noopener" className="shrink-0 text-xs text-primary hover:underline">
-          {t("Icons", "الأيقونات")}
+          {t("Icons")}
         </a>
       </div>
     );
@@ -183,14 +156,14 @@ function TextField({ k, value, onChange }: { k: string; value: string; onChange:
   return <input dir="auto" value={value} onChange={(e) => onChange(e.target.value)} className={inputCls} />;
 }
 
-function itemTitle(item: Json, i: number, t: (en: string, ar: string) => string) {
+function itemTitle(item: Json, i: number, t: T) {
   if (item && typeof item === "object" && !Array.isArray(item)) {
     for (const k of ["title", "label", "name", "q", "ar", "en", "key", "text", "quote"]) {
       const v = item[k];
       if (typeof v === "string" && v.trim()) return v.length > 60 ? `${v.slice(0, 60)}…` : v;
     }
   }
-  return t(`Item ${i + 1}`, `عنصر ${i + 1}`);
+  return t("Item {n}", { n: i + 1 });
 }
 
 function ListEditor({ k, value, template, onChange }: { k: string; value: Json[]; template: Json[]; onChange: (v: Json[]) => void }) {
@@ -204,7 +177,7 @@ function ListEditor({ k, value, template, onChange }: { k: string; value: Json[]
     if (open === i) setOpen(i + d);
   };
   const remove = (i: number) => {
-    if (typeof value[i] === "object" && !confirm(t("Delete this item?", "حذف هذا العنصر؟"))) return;
+    if (typeof value[i] === "object" && !confirm(t("Delete this item?"))) return;
     onChange(value.filter((_, j) => j !== i));
     setOpen(null);
   };
@@ -248,7 +221,7 @@ function ListEditor({ k, value, template, onChange }: { k: string; value: Json[]
         className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-sm text-primary hover:bg-primary-soft"
       >
         <Plus className="size-4" />
-        {t("Add", "إضافة")}
+        {t("Add")}
       </button>
     </div>
   );
@@ -259,13 +232,13 @@ function ItemButtons({ i, last, move, remove }: { i: number; last: number; move:
   const btn = "rounded-md p-1.5 text-muted hover:bg-surface-2 hover:text-foreground disabled:opacity-30";
   return (
     <div className="flex items-center">
-      <button type="button" aria-label={t("Move up", "تحريك للأعلى")} disabled={i === 0} onClick={() => move(i, -1)} className={btn}>
+      <button type="button" aria-label={t("Move up")} disabled={i === 0} onClick={() => move(i, -1)} className={btn}>
         <ArrowUp className="size-4" />
       </button>
-      <button type="button" aria-label={t("Move down", "تحريك للأسفل")} disabled={i === last} onClick={() => move(i, 1)} className={btn}>
+      <button type="button" aria-label={t("Move down")} disabled={i === last} onClick={() => move(i, 1)} className={btn}>
         <ArrowDown className="size-4" />
       </button>
-      <button type="button" aria-label={t("Delete", "حذف")} onClick={() => remove(i)} className="rounded-md p-1.5 text-muted hover:bg-danger-soft hover:text-danger">
+      <button type="button" aria-label={t("Delete")} onClick={() => remove(i)} className="rounded-md p-1.5 text-muted hover:bg-danger-soft hover:text-danger">
         <Trash2 className="size-4" />
       </button>
     </div>

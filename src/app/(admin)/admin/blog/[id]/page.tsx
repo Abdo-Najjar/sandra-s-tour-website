@@ -12,8 +12,8 @@ export default async function EditPage(props: PageProps<"/admin/blog/[id]">) {
   const t = await getT();
   return (
     <>
-      <BackLink href="/admin/blog" label={t("Blog", "المدونة")} />
-      <PageHeader title={t("Edit article", "تعديل مقال")} />
+      <BackLink href="/admin/blog" label={t("Blog")} />
+      <PageHeader title={t("Edit article")} />
       <Suspense fallback={<ContentSkeleton />}>
         <Content {...props} />
       </Suspense>

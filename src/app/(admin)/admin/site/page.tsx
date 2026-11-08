@@ -11,8 +11,8 @@ export default async function SiteContentPage() {
   return (
     <>
       <PageHeader
-        title={t("Website content", "محتوى الموقع")}
-        subtitle={t("Edit all the website text and images, in English and Arabic. Changes show as soon as you save.", "عدّل كل نصوص وصور الموقع بالإنجليزية والعربية. التغييرات تظهر مباشرة بعد الحفظ.")}
+        title={t("Website content")}
+        subtitle={t("Edit all the website text and images, in English and Arabic. Changes show as soon as you save.")}
       />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {SITE_SECTIONS.map((s) => (
@@ -22,8 +22,8 @@ export default async function SiteContentPage() {
             className="group flex items-center gap-3 rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary"
           >
             <div className="flex-1">
-              <h2 className="font-bold group-hover:text-primary">{t(...s.label)}</h2>
-              <p className="mt-1 text-sm text-muted">{t(...s.description)}</p>
+              <h2 className="font-bold group-hover:text-primary">{t(s.label)}</h2>
+              <p className="mt-1 text-sm text-muted">{t(s.description)}</p>
             </div>
             <ChevronRight className="size-5 text-muted group-hover:text-primary rtl:-scale-x-100" />
           </Link>

@@ -3,7 +3,8 @@
 Website and dashboard for [yoursyrianguide.com](https://yoursyrianguide.com).
 
 - **Website:** English at the plain URLs (`/tours`), Arabic under `/ar` (`/ar/tours`), right-to-left.
-- **Dashboard:** `/admin` (Arabic). Edits all website text, tours, articles, pages, bookings and messages.
+- **Dashboard:** `/admin`, English by default with an Arabic switch. Edits all website text, tours, articles, pages, bookings and messages.
+- **Fixed interface text:** `src/messages/en.json` and `src/messages/ar.json`. The dashboard is written in English in the code (`t("Bookings")`); its Arabic is in `ar.json` under `dashboard`. Website labels are under `site` in both files.
 - **Database:** SQLite (`local.db`) through Drizzle. Bilingual text is stored as JSON: `{"en": "...", "ar": "..."}`.
 
 ## Local setup
@@ -36,3 +37,4 @@ Pages are pre-built from the database, so run the database steps before `npm run
 | `npm run db:seed` | Adds sample content and dashboard logins |
 | `npm run db:refresh-content` | Resets website text to `src/lib/site/content.ts` / `content-ar.ts` |
 | `npm run db:studio` | Opens Drizzle Studio to browse the database |
+| `npm run i18n:check` | Lists dashboard text without Arabic and website labels missing from `ar.json` |

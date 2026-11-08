@@ -27,8 +27,8 @@ async function LoginScreen({ searchParams }: Pick<PageProps<"/login">, "searchPa
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/site/logo.png" alt="" className="size-16 rounded-full border border-accent/40 bg-white object-contain p-1" />
             <div>
-              <h1 className="text-2xl font-bold">{t("Sign in", "تسجيل الدخول")}</h1>
-              <p className="mt-1 text-sm text-muted">{t("Syria Guide Tours dashboard", "لوحة تحكم Syria Guide Tours")}</p>
+              <h1 className="text-2xl font-bold">{t("Sign in")}</h1>
+              <p className="mt-1 text-sm text-muted">{t("Syria Guide Tours dashboard")}</p>
             </div>
           </div>
           <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
