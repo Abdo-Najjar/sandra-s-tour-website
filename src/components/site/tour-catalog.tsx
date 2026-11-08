@@ -58,7 +58,7 @@ export function TourCatalog({
   const list = tours.filter((t) => matches(t, f));
   const countFor = (key: string) => tours.filter((t) => t.category === key).length;
   const select =
-    "cursor-pointer appearance-none rounded-lg border border-surface-container-high bg-surface-container-lowest py-2.5 ps-4 pe-9 text-body-sm outline-none focus:ring-2 focus:ring-antique-gold/50";
+    "w-full cursor-pointer appearance-none rounded-lg border border-surface-container-high bg-surface-container-lowest py-2.5 ps-4 pe-9 text-body-sm outline-none focus:ring-2 focus:ring-antique-gold/50";
 
   return (
     <>
@@ -73,7 +73,7 @@ export function TourCatalog({
               </h2>
               <p className="text-body-sm text-on-surface-variant">{filters.text}</p>
             </div>
-            <div className="grid grid-cols-2 gap-space-sm sm:grid-cols-3 lg:grid-cols-6">
+            <div className="-mx-space-lg flex snap-x snap-mandatory scroll-px-space-lg gap-space-sm overflow-x-auto px-space-lg pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6">
               {[{ key: "", icon: "explore", label: filters.all, note: "" }, ...filters.categories].map((c) => {
                 const active = f.category === c.key;
                 return (
@@ -82,7 +82,7 @@ export function TourCatalog({
                     type="button"
                     aria-pressed={active}
                     onClick={() => update({ category: c.key })}
-                    className={`flex flex-col items-center gap-1 rounded-xl border p-space-md text-center transition-all ${
+                    className={`flex w-36 shrink-0 snap-start flex-col items-center gap-1 rounded-xl border p-space-md text-center transition-all sm:w-auto ${
                       active
                         ? "border-primary bg-primary text-white shadow-lg"
                         : "border-surface-container-high bg-surface hover:border-antique-gold/50 hover:shadow-md"
@@ -99,7 +99,7 @@ export function TourCatalog({
             </div>
             <div className="mt-space-md flex flex-wrap items-center gap-space-sm border-t border-surface-container-high pt-space-md">
               <span className="text-label-lg text-primary">{t.moreFilters}</span>
-              <span className="relative">
+              <span className="relative min-w-[9.5rem] flex-1 sm:flex-none">
                 <select aria-label={t.duration} value={f.duration} onChange={(e) => update({ duration: e.target.value })} className={select}>
                   <option value="">{t.anyDuration}</option>
                   {tourDurationGroups.map((g) => (
@@ -110,7 +110,7 @@ export function TourCatalog({
                 </select>
                 <Icon name="expand_more" className="pointer-events-none absolute top-2.5 end-2 text-[20px] text-outline" />
               </span>
-              <span className="relative">
+              <span className="relative min-w-[9.5rem] flex-1 sm:flex-none">
                 <select aria-label={t.region} value={f.region} onChange={(e) => update({ region: e.target.value })} className={select}>
                   <option value="">{t.allRegions}</option>
                   {filters.regions.map((r) => (
@@ -149,7 +149,7 @@ export function TourCatalog({
                 {labels.eyebrow}
                 {labels.eyebrowNote && (
                   <>
-                    <span className="text-outline">|</span>
+                    <span className="hidden text-outline sm:inline">|</span>
                     <span className="text-heritage-olive">{labels.eyebrowNote}</span>
                   </>
                 )}

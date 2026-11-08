@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   CalendarCheck,
   ExternalLink,
@@ -106,6 +106,19 @@ export function DashboardShell({
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
+  // Phone menu: Escape closes it, and the page behind it doesn't scroll.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
     <div className="flex min-h-screen">
       {open && (
@@ -123,7 +136,7 @@ export function DashboardShell({
             <img src="/site/logo.png" alt="" className="size-9 rounded-full border border-border object-contain" />
             <span className="text-lg font-bold">لوحة التحكم</span>
           </Link>
-          <button className="lg:hidden" onClick={() => setOpen(false)} aria-label="إغلاق">
+          <button className="-me-2 flex size-10 items-center justify-center rounded-lg hover:bg-surface-2 lg:hidden" onClick={() => setOpen(false)} aria-label="إغلاق">
             <X className="size-5" />
           </button>
         </div>
@@ -156,7 +169,7 @@ export function DashboardShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur sm:px-6">
-          <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="فتح القائمة">
+          <button className="-ms-2 flex size-10 items-center justify-center rounded-lg hover:bg-surface-2 lg:hidden" onClick={() => setOpen(true)} aria-label="فتح القائمة" aria-expanded={open}>
             <Menu className="size-6" />
           </button>
           <a

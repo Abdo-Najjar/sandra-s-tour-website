@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Container, Eyebrow, Icon, SectionTitle } from "@/components/site/bits";
+import { FaqBrowser } from "@/components/site/faq-browser";
 import { BookingForm, BookingFormFromUrl, PartnershipForm } from "@/components/site/forms";
 import { Link } from "@/components/site/lang";
 import { getSite, getTours } from "@/lib/site/data";
@@ -266,7 +267,7 @@ export default async function ContactPage() {
       {/* FAQ */}
       <section id="faq" className="scroll-mt-24 py-space-3xl">
         <Container className="grid gap-space-2xl lg:grid-cols-12">
-          <div className="lg:col-span-4">
+          <div className="min-w-0 lg:col-span-4">
             <Eyebrow icon="help_center">{page.faq.eyebrow}</Eyebrow>
             <SectionTitle>{page.faq.title}</SectionTitle>
             <p className="mt-2 text-body-md text-on-surface-variant">{page.faq.text}</p>
@@ -284,27 +285,8 @@ export default async function ContactPage() {
               </a>
             </div>
           </div>
-          <div className="space-y-space-xl lg:col-span-8">
-            {faqGroups.map((g) => (
-              <div key={g.group || "faq"} className="space-y-3">
-                {g.group && (
-                  <h3 className="flex items-center gap-2 border-b border-antique-gold/30 pb-2 font-display text-headline-sm text-primary">
-                    <Icon name="help" className="text-[20px] text-antique-gold-dark" />
-                    {g.group}
-                  </h3>
-                )}
-                {g.items.map((f) => (
-                  <details key={f.n} open={f.n === 1} className="group overflow-hidden rounded-xl border border-surface-container-high bg-surface-container-lowest shadow-sm">
-                    <summary className="flex cursor-pointer list-none items-center gap-4 p-space-md">
-                      <span className="font-display text-headline-sm text-antique-gold">{String(f.n).padStart(2, "0")}</span>
-                      <span className="flex-1 font-sans text-body-md font-semibold text-primary">{f.q}</span>
-                      <Icon name="expand_more" className="shrink-0 text-antique-gold-dark transition-transform group-open:rotate-180" />
-                    </summary>
-                    <p className="px-space-md pb-space-md ps-[3.75rem] text-body-md whitespace-pre-line text-on-surface-variant">{f.a}</p>
-                  </details>
-                ))}
-              </div>
-            ))}
+          <div className="min-w-0 lg:col-span-8">
+            <FaqBrowser groups={faqGroups} />
           </div>
         </Container>
       </section>

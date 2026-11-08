@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { stripLang } from "@/lib/site/i18n";
 import { safeUrl } from "@/lib/site/shape";
 import { Icon } from "./bits";
@@ -34,6 +34,18 @@ export function SiteHeader({
   const pathname = usePathname();
   const t = useUi();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-surface-container-high bg-surface/95 shadow-[0_1px_8px_rgba(21,36,61,0.04)] backdrop-blur-xl">
@@ -92,7 +104,7 @@ export function SiteHeader({
       </div>
 
       {open && (
-        <nav id="mobile-menu" aria-label="Mobile" className="border-t border-surface-container-high bg-surface px-margin-mobile pb-space-lg xl:hidden" onClick={(e) => (e.target as HTMLElement).closest("a") && setOpen(false)}>
+        <nav id="mobile-menu" aria-label="Mobile" className="max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-surface-container-high bg-surface px-margin-mobile pb-space-lg xl:hidden" onClick={(e) => (e.target as HTMLElement).closest("a") && setOpen(false)}>
           <ul className="flex flex-col py-space-sm">
             {menu.map((item) => {
               const active = isActive(pathname, item.href);

@@ -191,9 +191,9 @@ function ListEditor({ k, value, template, onChange }: { k: string; value: Json[]
   return (
     <div className="grid gap-2">
       {value.map((item, i) => (
-        <div key={i} className={simple ? "flex items-start gap-1" : "rounded-lg border border-border bg-surface"}>
+        <div key={i} className={simple ? "flex min-w-0 items-start gap-1" : "min-w-0 rounded-lg border border-border bg-surface"}>
           {simple ? (
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <Node k={k} value={item} template={sample} onChange={(v) => onChange(value.map((x, j) => (j === i ? v : x)))} />
             </div>
           ) : (
@@ -203,7 +203,7 @@ function ListEditor({ k, value, template, onChange }: { k: string; value: Json[]
               className="flex w-full items-center gap-2 px-3 py-2 text-right text-sm font-medium"
             >
               <ChevronDown className={`size-4 shrink-0 text-muted transition-transform ${open === i ? "rotate-180" : ""}`} />
-              <span dir="auto" className="flex-1 truncate">{itemTitle(item, i)}</span>
+              <span dir="auto" className="min-w-0 flex-1 truncate">{itemTitle(item, i)}</span>
             </button>
           )}
           {simple && <ItemButtons i={i} last={value.length - 1} move={move} remove={remove} />}

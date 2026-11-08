@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Fragment } from "react";
 import { Icon, Paragraphs, Stars, formatPrice } from "@/components/site/bits";
 import { MiniTourCard } from "@/components/site/cards";
+import { MobileBookBar } from "@/components/site/mobile-book-bar";
 import { NewsletterForm, TourBookingForm } from "@/components/site/forms";
 import { Link } from "@/components/site/lang";
 import { getPublishedSlugs, getSite, getTour, getTours } from "@/lib/site/data";
@@ -133,9 +134,9 @@ export default async function TourPage({ params }: PageProps<"/[lang]/tours/[slu
             </a>
           </div>
           {d.specs.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 rounded-xl bg-surface-container-low p-space-md shadow-sm md:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-container-low p-2 shadow-sm sm:gap-3 sm:p-space-md md:grid-cols-3 lg:grid-cols-6">
               {d.specs.map((s) => (
-                <div key={s.label + s.value} className="flex items-start gap-3 p-2">
+                <div key={s.label + s.value} className="flex min-w-0 items-start gap-2 p-2 sm:gap-3">
                   <Icon name={s.icon} className="shrink-0 text-secondary" />
                   <div>
                     <span className="block text-label-sm tracking-wider text-outline uppercase">{s.label}</span>
@@ -429,6 +430,7 @@ export default async function TourPage({ params }: PageProps<"/[lang]/tours/[slu
           </aside>
         </div>
       </section>
+      <MobileBookBar price={formatPrice(tour.price)} perPerson={t.perPerson} label={t.bookTour} />
 
       {related.length > 0 && (
         <section className="w-full bg-surface-container-low px-margin-mobile py-space-xl md:px-margin">

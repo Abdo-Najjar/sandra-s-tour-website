@@ -233,3 +233,13 @@
   margin: 1.5rem 0;
   width: 100%;
 }
+
+/* Lift the WhatsApp button above the tour page's booking bar on phones. */
+@media (width < 64rem) {
+  body.has-book-bar .whatsapp-fab {
+    bottom: 5.5rem;
+  }
+}
+.whatsapp-fab {
+  transition: bottom 0.3s, transform 0.15s;
+}
