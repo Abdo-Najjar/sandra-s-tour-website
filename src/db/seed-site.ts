@@ -40,7 +40,7 @@ type SeedTour = {
   details: Partial<TourDetails>;
 };
 
-const seedTours: SeedTour[] = [
+export const seedTours: SeedTour[] = [
   {
     slug: "grand-levant-odyssey",
     title: "The Grand Levant Odyssey",
@@ -522,7 +522,7 @@ const seedTours: SeedTour[] = [
   },
 ];
 
-const seedPosts = [
+export const seedPosts = [
   {
     slug: "palmyra-revisited",
     title: "Palmyra Revisited: Decoding the Architectural Mastery of Queen Zenobia's Desert Oasis",

@@ -100,7 +100,7 @@ const en = {
   languagesSpoken: "Languages Spoken",
   aboutMe: "About Me",
   liveConcierge: "Live Concierge",
-  viewRoster: "View Full Team",
+  viewRoster: "View All Guides",
   guideWhatsapp: "Hello Sandra, I would like to book you as my guide.",
   instantWhatsapp: (phone: string) => `Instant WhatsApp (${phone})`,
 
@@ -278,7 +278,7 @@ const ar: UI = {
   languagesSpoken: "اللغات",
   aboutMe: "نبذة عني",
   liveConcierge: "متاحة الآن",
-  viewRoster: "عرض الفريق كاملاً",
+  viewRoster: "عرض كل المرشدين",
   guideWhatsapp: "مرحباً ساندرا، أرغب بحجزك مرشدةً لرحلتي.",
   instantWhatsapp: (phone) => `واتساب مباشر (${phone})`,
 

@@ -147,8 +147,12 @@ export function TourCatalog({
               <div className="mb-2 flex flex-wrap items-center gap-2 text-label-lg font-semibold text-antique-gold-dark">
                 <Icon name="event_available" className="text-[18px]" />
                 {labels.eyebrow}
-                <span className="text-outline">|</span>
-                <span className="text-heritage-olive">{labels.eyebrowNote}</span>
+                {labels.eyebrowNote && (
+                  <>
+                    <span className="text-outline">|</span>
+                    <span className="text-heritage-olive">{labels.eyebrowNote}</span>
+                  </>
+                )}
               </div>
               <h2 className="font-display text-headline-lg font-bold text-primary md:text-headline-xl">{labels.title}</h2>
               <p className="mt-2 text-body-md text-on-surface-variant">{labels.text}</p>
@@ -157,7 +161,7 @@ export function TourCatalog({
               <Icon name="calendar_month" className="text-[28px] text-heritage-olive" />
               <div>
                 <div className="text-label-lg font-bold text-primary">{labels.badgeTitle}</div>
-                <div className="text-label-md text-on-surface-variant">{labels.badgeText}</div>
+                {labels.badgeText && <div className="text-label-md text-on-surface-variant">{labels.badgeText}</div>}
               </div>
             </div>
           </div>
