@@ -23,7 +23,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: general.seoTitle, template: `%s | ${general.name}` },
     description: general.seoDescription,
-    icons: general.logo ? { icon: general.logo } : undefined,
     openGraph: { siteName: general.name, type: "website", locale: lang === "ar" ? "ar_SY" : "en_US" },
     alternates: { languages: { en: "/", ar: "/ar" } },
   };
