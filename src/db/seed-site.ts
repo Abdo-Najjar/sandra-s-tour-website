@@ -1,4 +1,4 @@
-// Website sample content from the Stitch "Syrian Local Guides" design.
+// Website sample content from the Stitch "Syria Guide Tours" design.
 import { bookings, db, messages, pages, posts, site, subscribers, tours } from "./index";
 import { defaultSiteContent, SITE_ROW_ID } from "../lib/site/content";
 import { defaultSiteContentAr } from "../lib/site/content-ar";
@@ -341,7 +341,7 @@ export const seedTours: SeedTour[] = [
       ],
       testimonials: [
         { quote: "Standing under the monumental arch at sunset with Sandra explaining Queen Zenobia's defiance was easily the most profound archaeological experience of my lifetime. The logistics were flawless, dignified, and exceptionally safe.", name: "Dr. Alistair Finch", role: "Near Eastern Studies, Oxford", date: "October 2024" },
-        { quote: "As an independent female traveler from Switzerland, I had natural apprehensions. From the first WhatsApp consultation to our dinner under the desert stars, Syrian Local Guides delivered supreme care and world-class scholarship.", name: "Elena Wyss", role: "Zurich, Switzerland", date: "January 2025" },
+        { quote: "As an independent female traveler from Switzerland, I had natural apprehensions. From the first WhatsApp consultation to our dinner under the desert stars, Syria Guide Tours delivered supreme care and world-class scholarship.", name: "Elena Wyss", role: "Zurich, Switzerland", date: "January 2025" },
       ],
       faq: [
         { q: "Is traveling to Palmyra secure and approved by international travel protocols?", a: "Yes. The Damascus-Palmyra corridor is secured and civilian transport travels daily. Our expeditions operate strictly under official Syrian Ministry of Tourism route manifests with active check-in tracking. We provide pre-trip security briefings and 24/7 communications." },

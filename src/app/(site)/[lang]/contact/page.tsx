@@ -192,7 +192,7 @@ export default async function ContactPage() {
           </div>
 
           <div className="mt-space-2xl grid gap-space-xl lg:grid-cols-2">
-            <div>
+            <div className="min-w-0">
               <Eyebrow icon="hub">{page.partnership.benefitsEyebrow}</Eyebrow>
               <h3 className="font-display text-headline-lg text-primary">{page.partnership.benefitsTitle}</h3>
               <p className="mt-2 text-body-md text-on-surface-variant">{page.partnership.benefitsText}</p>

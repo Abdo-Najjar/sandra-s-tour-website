@@ -12,10 +12,10 @@ const img = (n: string) => `/site/img${n}.jpg`;
 
 export const defaultSiteContent = {
   general: {
-    name: "Syrian Local Guides",
+    name: "Syria Guide Tours",
     tagline: "LICENSED CULTURAL EXPEDITIONS",
     logo: "/site/logo.png",
-    seoTitle: "Syrian Local Guides | Licensed Cultural Expeditions in Syria",
+    seoTitle: "Syria Guide Tours | Licensed Cultural Expeditions in Syria",
     seoDescription:
       "Curated private and small-group cultural expeditions across Syria led by certified Syrian tour guides, historians and local scholars.",
     bookLabel: "Book an Expedition",
@@ -75,7 +75,7 @@ export const defaultSiteContent = {
     newsletterPlaceholder: "Enter your diplomatic or personal email",
     newsletterButton: "Subscribe to Dispatch",
     copyright:
-      "© 2025 Syrian Local Guides. Registered & Licensed under Syrian Ministry of Tourism. All rights reserved.",
+      "© 2025 Syria Guide Tours. Registered & Licensed under Syrian Ministry of Tourism. All rights reserved.",
     bottomLinks: [
       { label: "Safety & Protocol", href: "/about#safety" },
       { label: "Visa Facilitation", href: "/contact#faq" },
@@ -172,7 +172,7 @@ export const defaultSiteContent = {
       items: [
         {
           quote:
-            "As an archaeologist who had not been to Syria since 2009, I was deeply moved by the care, profound academic depth, and logistical grace provided by Syrian Local Guides. Standing in Palmyra again was transformative.",
+            "As an archaeologist who had not been to Syria since 2009, I was deeply moved by the care, profound academic depth, and logistical grace provided by Syria Guide Tours. Standing in Palmyra again was transformative.",
           name: "Dr. Eleanor Vance",
           role: "Near Eastern Studies, Oxford University",
         },
@@ -269,7 +269,7 @@ export const defaultSiteContent = {
     },
     inclusions: {
       title: "Standard Inclusions Across All Expeditions",
-      text: "Every journey organized by Syrian Local Guides is comprehensively managed from entry to departure.",
+      text: "Every journey organized by Syria Guide Tours is comprehensively managed from entry to departure.",
       items: [
         { icon: "badge", title: "Official Visa & Permits", text: "Ministry of Foreign Affairs clearance, security verification, and expedited entry approvals for all registered travelers." },
         { icon: "history_edu", title: "Licensed Historians", text: "Certified guide-lecturers with advanced degrees in Levantine archaeology, Arabic literature, and Byzantine history." },
@@ -298,7 +298,7 @@ export const defaultSiteContent = {
   about: {
     hero: {
       eyebrow: "Who We Are",
-      title: "About Syrian Local Guides",
+      title: "About Syria Guide Tours",
       text1:
         "We are a team of passionate, licensed tour guides based in the historic heart of Old Damascus. Fully certified by the Syrian Ministry of Tourism, we believe that travel is more than just sightseeing—it is a living experience. Our mission is to share Syria’s rich cultural heritage, legendary warmth, and local lifestyle with the world.",
       text2:
@@ -407,7 +407,7 @@ export const defaultSiteContent = {
       eyebrow: "OUR ACCREDITED TEAM & FOUNDER",
       status: "Status: Available for 2025/2026 Expeditions • Certified by Syrian Ministry of Tourism",
       title: "Explore Syria with Certified Local Experts",
-      text: "Syrian Local Guides connects you with passionate, licensed professionals who bring history to life and ensure your journey is safe and unforgettable.",
+      text: "Syria Guide Tours connects you with passionate, licensed professionals who bring history to life and ensure your journey is safe and unforgettable.",
       primary: "Book your next tour with us!",
       secondary: "Explore our expert guides",
       stats: [
@@ -430,7 +430,7 @@ export const defaultSiteContent = {
       languages: "🇸🇾 Arabic (Native) | 🇬🇧 English (Professional)",
       credentials: "Verified Credentials: Syrian Ministry of Tourism License Class-A • WFTGA Compliant",
       about: [
-        { text: "Hi, I am Sandra! I am a licensed tour guide and trip organizer with a lifelong passion for Syria’s unparalleled history, ancient archaeology, and vibrant culture. By combining my background in professional management with my deep love for travel, I founded Syrian Local Guides." },
+        { text: "Hi, I am Sandra! I am a licensed tour guide and trip organizer with a lifelong passion for Syria’s unparalleled history, ancient archaeology, and vibrant culture. By combining my background in professional management with my deep love for travel, I founded Syria Guide Tours." },
         { text: "For me, tourism is about creating unforgettable human connections. I don’t just show you places; I bring you into the heart of Syrian life. I am excited to be your companion, guide, and friend on the ground!" },
       ],
       stats: [
@@ -453,7 +453,7 @@ export const defaultSiteContent = {
     },
     why: {
       eyebrow: "THE LOCAL ADVANTAGE",
-      title: "Why Syrian Local Guide?",
+      title: "Why Syria Guide Tours?",
       text: "Navigating Syria demands uncompromising compliance, verified clearances, and deep regional relationships built over decades.",
       items: [
         { icon: "shield", title: "100% Licensed", text: "Every guide operating under our platform holds an official license issued by the Ministry of Tourism in Syria.", tag: "Official Class-A Status" },
@@ -554,7 +554,7 @@ export const defaultSiteContent = {
       eyebrow: "Professional Alliances & Heritage Synergies",
       title: "Partner & Collaborate With Us",
       question: "Want to work with us? Have an idea, a project, or expertise you want to showcase?",
-      text: "Whether you are an International or Regional Tourism Company, Independent Business Owner, Cultural Project, or Certified Local Guide, collaborate with Syrian Local Guides to elevate and expand cultural tourism across Syria.",
+      text: "Whether you are an International or Regional Tourism Company, Independent Business Owner, Cultural Project, or Certified Local Guide, collaborate with Syria Guide Tours to elevate and expand cultural tourism across Syria.",
       groups: [
         { icon: "travel_explore", title: "Companies & Travel Agencies", text: "Joint itineraries, incoming client reception handling, certified visa clearance facilitation, and tailored bespoke group packages across Syrian provinces.", tag: "B2B Contracted Alliances" },
         { icon: "storefront", title: "Local Businesses & Cultural Projects", text: "Artisan workshops, boutique Levantine heritage stays, traditional culinary experiences, and restoration initiatives integrated directly into our guest routes.", tag: "Direct Cultural Showcase" },
@@ -639,7 +639,7 @@ export const defaultSiteContent = {
         { icon: "verified_user", title: "Real-Time Field Safety", text: "Daily road clearance verification and ministry-coordinated protocols." },
         { icon: "volunteer_activism", title: "Guild Support", text: "100% of editorial honorariums directly benefit Syrian artisan workshops." },
       ],
-      sealTitle: "Syrian Local Guides",
+      sealTitle: "Syria Guide Tours",
       sealText: "Licensed under Syria Ministry of Tourism Decision No. 428/A. Dedicated to the unadulterated preservation of Syrian civilizational memory.",
       sealButton: "Meet Our Guides & Historians",
     },

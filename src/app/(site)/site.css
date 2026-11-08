@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Design tokens from the Stitch "Syrian Local Guides" design. */
+/* Design tokens from the Stitch "Syrian Local Guides" design (site now named Syria Guide Tours). */
 @theme {
   --color-primary: #15243d;
   --color-primary-light: #1e3354;
@@ -242,4 +242,10 @@
 }
 .whatsapp-fab {
   transition: bottom 0.3s, transform 0.15s;
+}
+
+/* Long email addresses and links may wrap instead of widening the page on phones. */
+a[href^="mailto:"],
+a[href^="tel:"] {
+  overflow-wrap: anywhere;
 }

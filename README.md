@@ -1,4 +1,4 @@
-# Syrian Local Guides
+# Syria Guide Tours
 
 Website and dashboard for [yoursyrianguide.com](https://yoursyrianguide.com).
 
