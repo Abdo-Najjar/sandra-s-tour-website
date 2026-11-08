@@ -25,7 +25,8 @@ import {
 import type { SiteContent, SiteSection } from "@/lib/site/content";
 import { localHref, type Lang } from "@/lib/site/i18n";
 import { conform } from "@/lib/site/shape";
-import { emptyTourDetails, pageArTemplate, postArTemplate, tourDetailsTemplate, type TourDetails } from "@/lib/site/tour";
+import { emptyTourDetails, tourDetailsTemplate, type TourDetails } from "@/lib/site/tour";
+import type { AdminPage, AdminPost, AdminTour } from "@/lib/queries";
 import type { BookingStatus, Page, Post, Tour } from "@/db/schema";
 import { bookingStatusLabels } from "@/lib/site/labels";
 import { ContentEditor, ImageInput, inputCls, uploadImage } from "./content-editor";
@@ -196,17 +197,16 @@ export function TourForm({
   tour,
   categories,
   regions,
-  ar,
   saved,
 }: {
-  tour: (Omit<Tour, "details"> & { details: TourDetails }) | null;
+  tour: AdminTour | null;
   categories: Option[];
   regions: Option[];
-  ar: { title: string; summary: string; details: TourDetails };
   saved?: boolean;
 }) {
   const { state, pending, dirty, formProps } = useSave(saveTour.bind(null, tour?.id ?? null));
   const t = tour;
+  const ar = tour?.ar ?? { title: "", summary: "", details: emptyTourDetails };
 
   return (
     <form {...formProps} className="grid gap-4">
@@ -389,10 +389,10 @@ function BodyEditor({ name, initial }: { name: string; initial: string }) {
   );
 }
 
-export function PostForm({ post, saved }: { post: Post | null; saved?: boolean }) {
+export function PostForm({ post, saved }: { post: AdminPost | null; saved?: boolean }) {
   const { state, pending, dirty, formProps } = useSave(savePost.bind(null, post?.id ?? null));
   const p = post;
-  const ar = conform(p?.ar, postArTemplate);
+  const ar = p?.ar ?? { title: "", category: "", excerpt: "", author: "", tags: "", body: "" };
 
   return (
     <form {...formProps} className="grid gap-4">
@@ -490,10 +490,10 @@ export function PostRowActions({ id, published }: { id: number; published: boole
 
 // ---------- Extra pages ----------
 
-export function PageForm({ page, saved }: { page: Page | null; saved?: boolean }) {
+export function PageForm({ page, saved }: { page: AdminPage | null; saved?: boolean }) {
   const { state, pending, dirty, formProps } = useSave(savePage.bind(null, page?.id ?? null));
   const p = page;
-  const ar = conform(p?.ar, pageArTemplate);
+  const ar = p?.ar ?? { title: "", subtitle: "", body: "" };
   return (
     <form {...formProps} className="grid gap-4">
       <div className={panel}>

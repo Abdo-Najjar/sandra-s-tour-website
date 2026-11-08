@@ -2,10 +2,10 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { and, asc, desc, eq, ne } from "drizzle-orm";
 import { db, pages, posts, site, tours } from "@/db";
-import { siteRowId, withDefaults } from "./content";
+import { SITE_ROW_ID, siteData } from "./content";
 import type { Lang } from "./i18n";
-import { overlay, pageArTemplate, postArTemplate, tourAr, tourDetails } from "./tour";
-import { conform } from "./shape";
+import { localDetails } from "./tour";
+import { pick } from "./translatable";
 
 // Public website reads, per language. Cached until the dashboard changes
 // something (admin actions call updateTag with these tags).
@@ -15,20 +15,17 @@ export async function getSite(lang: Lang) {
   "use cache";
   cacheTag(TAGS.site);
   cacheLife("max");
-  const row = await db.query.site.findFirst({ where: eq(site.id, siteRowId(lang)) });
-  return withDefaults(row?.data, lang);
+  const row = await db.query.site.findFirst({ where: eq(site.id, SITE_ROW_ID) });
+  return siteData(row?.data, lang);
 }
 
+// A tour with its text in one language.
 function toPublicTour(row: typeof tours.$inferSelect, lang: Lang) {
-  const { ar, titleAr, ...rest } = row;
-  const base = { ...rest, details: tourDetails(row.details) };
-  if (lang !== "ar") return base;
-  const t = tourAr(ar);
   return {
-    ...base,
-    title: t.title?.trim() || titleAr.trim() || base.title,
-    summary: t.summary?.trim() || base.summary,
-    details: overlay(base.details, t.details),
+    ...row,
+    title: pick(row.title, lang),
+    summary: pick(row.summary, lang),
+    details: localDetails(row.details, lang),
   };
 }
 export type PublicTour = ReturnType<typeof toPublicTour>;
@@ -53,14 +50,22 @@ export async function getTour(slug: string, lang: Lang) {
   return row ? toPublicTour(row, lang) : null;
 }
 
-function localizePost<T extends { title: string; category: string; excerpt: string; author: string; tags: string; ar: unknown }>(
+// An article with its text in one language. `categoryKey` stays the English
+// category, so the blog filters work in both languages.
+function localizePost<T extends { title: unknown; category: unknown; excerpt: unknown; author: unknown; tags: unknown; body: unknown }>(
   row: T,
   lang: Lang,
 ) {
-  const { ar, ...rest } = row;
-  // `categoryKey` stays the English category, so blog filters work in both languages.
-  const base = { ...rest, categoryKey: row.category };
-  return lang === "ar" ? overlay(base, conform(ar, postArTemplate) as unknown as Partial<typeof base>) : base;
+  return {
+    ...row,
+    title: pick(row.title, lang),
+    category: pick(row.category, lang),
+    categoryKey: pick(row.category, "en"),
+    excerpt: pick(row.excerpt, lang),
+    author: pick(row.author, lang),
+    tags: pick(row.tags, lang),
+    body: pick(row.body, lang),
+  };
 }
 
 export async function getPosts(lang: Lang) {
@@ -80,7 +85,6 @@ export async function getPosts(lang: Lang) {
       tags: posts.tags,
       publishedAt: posts.publishedAt,
       featured: posts.featured,
-      ar: posts.ar,
     })
     .from(posts)
     .where(eq(posts.published, true))
@@ -101,10 +105,13 @@ export async function getPost(slug: string, lang: Lang) {
   return row ? localizePost(row, lang) : null;
 }
 
-function localizePage<T extends { ar: unknown }>(row: T, lang: Lang): Omit<T, "ar"> {
-  const { ar, ...rest } = row;
-  if (lang !== "ar") return rest;
-  return overlay(rest as Record<string, unknown>, conform(ar, pageArTemplate)) as Omit<T, "ar">;
+function localizePage<T extends { title: unknown; subtitle?: unknown; body?: unknown }>(row: T, lang: Lang) {
+  return {
+    ...row,
+    title: pick(row.title, lang),
+    subtitle: pick(row.subtitle, lang),
+    body: pick(row.body, lang),
+  };
 }
 
 export async function getMenuPages(lang: Lang) {
@@ -112,7 +119,7 @@ export async function getMenuPages(lang: Lang) {
   cacheTag(TAGS.pages);
   cacheLife("max");
   const rows = await db
-    .select({ slug: pages.slug, title: pages.title, ar: pages.ar })
+    .select({ slug: pages.slug, title: pages.title })
     .from(pages)
     .where(and(eq(pages.published, true), eq(pages.showInMenu, true)))
     .orderBy(asc(pages.sortOrder), asc(pages.id));

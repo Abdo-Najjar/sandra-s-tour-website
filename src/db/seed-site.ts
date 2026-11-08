@@ -1,9 +1,10 @@
 // Website sample content from the Stitch "Syrian Local Guides" design.
 import { bookings, db, messages, pages, posts, site, subscribers, tours } from "./index";
-import { defaultSiteContent } from "../lib/site/content";
+import { defaultSiteContent, SITE_ROW_ID } from "../lib/site/content";
 import { defaultSiteContentAr } from "../lib/site/content-ar";
 import { mergeArDetails, postsAr, termsAr, toursAr } from "./seed-site-ar";
-import type { TourDetails } from "../lib/site/tour";
+import { partialDetails, tourDetails, type TourDetails } from "../lib/site/tour";
+import { tr } from "../lib/site/translatable";
 
 const img = (n: string) => `/site/img${n}.jpg`;
 
@@ -706,11 +707,8 @@ In the workshops near Bab Sharqi, artisans cut thousands of tiny pieces of walnu
 ];
 
 export async function seedWebsite() {
-  // Row 1 = English website text, row 2 = Arabic.
-  await db.insert(site).values([
-    { id: 1, data: defaultSiteContent },
-    { id: 2, data: defaultSiteContentAr },
-  ]);
+  // One row with both languages: {"en": {...}, "ar": {...}}.
+  await db.insert(site).values({ id: SITE_ROW_ID, data: { en: defaultSiteContent, ar: defaultSiteContentAr } });
 
   const tourRows = await db
     .insert(tours)
@@ -719,16 +717,14 @@ export async function seedWebsite() {
         const ar = toursAr[t.slug];
         return {
         slug: t.slug,
-        title: t.title,
-        titleAr: ar?.title ?? "",
-        ar: ar ? { title: ar.title, summary: ar.summary, details: mergeArDetails(t.details, ar.details) } : {},
+        title: tr(t.title, ar?.title),
         category: t.category,
         region: t.region,
         image: t.image,
         price: t.price,
         durationDays: t.durationDays,
-        summary: t.summary,
-        details: t.details,
+        summary: tr(t.summary, ar?.summary),
+        details: { en: tourDetails(t.details), ar: ar ? partialDetails(mergeArDetails(t.details, ar.details)) : {} },
         featured: t.featured ?? false,
         sortOrder: i,
         };
@@ -736,13 +732,26 @@ export async function seedWebsite() {
     )
     .returning({ id: tours.id, title: tours.title });
 
-  await db.insert(posts).values(seedPosts.map((p) => ({ ...p, ar: postsAr[p.slug] ?? {} })));
+  await db.insert(posts).values(
+    seedPosts.map((p) => {
+      const ar: Partial<Record<string, string>> = postsAr[p.slug] ?? {};
+      return {
+        ...p,
+        title: tr(p.title, ar.title),
+        category: tr(p.category, ar.category),
+        excerpt: tr(p.excerpt, ar.excerpt),
+        author: tr(p.author, ar.author),
+        tags: tr(p.tags, ar.tags),
+        body: tr(p.body, ar.body),
+      };
+    }),
+  );
 
   const now = Date.now();
   const ago = (days: number) => new Date(now - days * 86_400_000).toISOString().slice(0, 19).replace("T", " ");
   await db.insert(bookings).values([
-    { tourId: tourRows[0].id, tourTitle: tourRows[0].title, name: "Claire Dubois", email: "claire@example.com", phone: "+33 6 12 34 56 78", nationality: "France", tourClass: "Boutique Small Group (Max 8-10 guests)", arrivalDate: "2026-04-11", adults: 2, children: 0, flexibility: "±3 Days Flexible", note: "We are interested in Roman architecture.", source: "contact", status: "new", createdAt: ago(1) },
-    { tourId: tourRows[4].id, tourTitle: tourRows[4].title, name: "Johan Berg", email: "johan@example.com", phone: "+46 70 123 45 67", nationality: "Sweden", tourClass: "Private VIP", arrivalDate: "2026-03-20", adults: 1, children: 0, flexibility: "Exact dates required", note: "", source: "tour", status: "contacted", createdAt: ago(4) },
+    { tourId: tourRows[0].id, tourTitle: tourRows[0].title.en, name: "Claire Dubois", email: "claire@example.com", phone: "+33 6 12 34 56 78", nationality: "France", tourClass: "Boutique Small Group (Max 8-10 guests)", arrivalDate: "2026-04-11", adults: 2, children: 0, flexibility: "±3 Days Flexible", note: "We are interested in Roman architecture.", source: "contact", status: "new", createdAt: ago(1) },
+    { tourId: tourRows[4].id, tourTitle: tourRows[4].title.en, name: "Johan Berg", email: "johan@example.com", phone: "+46 70 123 45 67", nationality: "Sweden", tourClass: "Private VIP", arrivalDate: "2026-03-20", adults: 1, children: 0, flexibility: "Exact dates required", note: "", source: "tour", status: "contacted", createdAt: ago(4) },
     { tourId: null, tourTitle: "Bespoke Diplomatic / Photographic Route", name: "Amal Haddad", email: "amal@example.com", phone: "+1 514 555 0199", nationality: "Canada", tourClass: "Syrian Diaspora Heritage Homecoming", arrivalDate: "2026-05-02", adults: 3, children: 2, flexibility: "Flexible within month", note: "Family roots visit to Homs.", source: "guide", status: "confirmed", createdAt: ago(9) },
   ]);
 
@@ -756,11 +765,10 @@ export async function seedWebsite() {
   await db.insert(pages).values([
     {
       slug: "terms",
-      title: "Booking Terms & Conditions",
-      subtitle: "Clear, fair terms for every expedition",
-      body: "## Reservations\n\nA booking request does not require payment. We confirm availability and clearances first.\n\n## Payments\n\nDeposits are settled once your security clearance is approved.\n\n## Cancellations\n\n- Free cancellation up to 30 days before arrival\n- 50% refund between 30 and 14 days\n- No refund within 14 days",
+      title: tr("Booking Terms & Conditions", termsAr.title),
+      subtitle: tr("Clear, fair terms for every expedition", termsAr.subtitle),
+      body: tr("## Reservations\n\nA booking request does not require payment. We confirm availability and clearances first.\n\n## Payments\n\nDeposits are settled once your security clearance is approved.\n\n## Cancellations\n\n- Free cancellation up to 30 days before arrival\n- 50% refund between 30 and 14 days\n- No refund within 14 days", termsAr.body),
       showInMenu: false,
-      ar: termsAr,
     },
   ]);
 

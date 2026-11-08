@@ -1,5 +1,8 @@
 import { sql } from "drizzle-orm";
 import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import type { SiteContent } from "../lib/site/content";
+import type { TourDetails } from "../lib/site/tour";
+import type { Tr } from "../lib/site/translatable";
 
 export const USER_ROLES = ["admin", "editor", "user"] as const;
 export const ORDER_STATUSES = ["completed", "processing", "cancelled"] as const;
@@ -85,11 +88,15 @@ const updatedAt = () =>
     .notNull()
     .default(sql`(datetime('now'))`);
 
-// One row per language (1 = English, 2 = Arabic) with all editable website text/images as JSON.
-// Shape + defaults: src/lib/site/content.ts
+// Bilingual text columns hold JSON with both languages, e.g.
+//   {"en": "Old Damascus", "ar": "دمشق القديمة"}
+// An empty "ar" falls back to "en" on the Arabic website. Helpers: src/lib/site/translatable.ts
+
+// One row (id 1): {"en": {...all website text...}, "ar": {...}}.
+// Shape + defaults: src/lib/site/content.ts and content-ar.ts
 export const site = sqliteTable("site", {
   id: integer("id").primaryKey(),
-  data: text("data", { mode: "json" }).notNull(),
+  data: text("data", { mode: "json" }).$type<Tr<SiteContent>>().notNull(),
   updatedAt: updatedAt(),
 });
 
@@ -98,20 +105,18 @@ export const site = sqliteTable("site", {
 export const tours = sqliteTable("tours", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  titleAr: text("title_ar").notNull().default(""),
+  title: text("title", { mode: "json" }).$type<Tr>().notNull(),
   category: text("category").notNull().default(""),
   region: text("region").notNull().default(""),
   image: text("image").notNull().default(""),
   price: real("price").notNull().default(0),
   durationDays: integer("duration_days").notNull().default(1),
-  summary: text("summary").notNull().default(""),
-  details: text("details", { mode: "json" }).notNull().default(sql`'{}'`),
+  summary: text("summary", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`),
+  // {"en": all fields, "ar": only the Arabic fields that were filled in}
+  details: text("details", { mode: "json" }).$type<Tr<TourDetails, Partial<TourDetails>>>().notNull().default(sql`'{"en":{},"ar":{}}'`),
   featured: integer("featured", { mode: "boolean" }).notNull().default(false),
   published: integer("published", { mode: "boolean" }).notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
-  // Arabic version: { title, summary, details }. Shape: src/lib/site/tour.ts
-  ar: text("ar", { mode: "json" }).notNull().default(sql`'{}'`),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -119,20 +124,17 @@ export const tours = sqliteTable("tours", {
 export const posts = sqliteTable("posts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  kickerAr: text("kicker_ar").notNull().default(""),
-  category: text("category").notNull().default(""),
-  excerpt: text("excerpt").notNull().default(""),
+  title: text("title", { mode: "json" }).$type<Tr>().notNull(),
+  category: text("category", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`), // "en" is also the blog filter key
+  excerpt: text("excerpt", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`),
   cover: text("cover").notNull().default(""),
-  author: text("author").notNull().default(""),
+  author: text("author", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`),
   readMinutes: integer("read_minutes").notNull().default(5),
-  tags: text("tags").notNull().default(""), // comma separated
-  body: text("body").notNull().default(""), // simple markdown: ## heading, - list, > quote
+  tags: text("tags", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`), // comma separated
+  body: text("body", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`), // simple markdown: ## heading, - list, > quote
   publishedAt: text("published_at").notNull().default(sql`(date('now'))`),
   featured: integer("featured", { mode: "boolean" }).notNull().default(false),
   published: integer("published", { mode: "boolean" }).notNull().default(true),
-  // Arabic version: { title, category, excerpt, author, tags, body }.
-  ar: text("ar", { mode: "json" }).notNull().default(sql`'{}'`),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -178,15 +180,13 @@ export const subscribers = sqliteTable("subscribers", {
 export const pages = sqliteTable("pages", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  subtitle: text("subtitle").notNull().default(""),
+  title: text("title", { mode: "json" }).$type<Tr>().notNull(),
+  subtitle: text("subtitle", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`),
   image: text("image").notNull().default(""),
-  body: text("body").notNull().default(""),
+  body: text("body", { mode: "json" }).$type<Tr>().notNull().default(sql`'{"en":"","ar":""}'`),
   published: integer("published", { mode: "boolean" }).notNull().default(true),
   showInMenu: integer("show_in_menu", { mode: "boolean" }).notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
-  // Arabic version: { title, subtitle, body }.
-  ar: text("ar", { mode: "json" }).notNull().default(sql`'{}'`),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

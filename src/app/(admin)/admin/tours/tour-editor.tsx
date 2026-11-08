@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { TourForm } from "@/components/admin/site-forms";
 import { getAdminTour, getSiteContent } from "@/lib/queries";
-import { emptyTourDetails, tourAr } from "@/lib/site/tour";
 
 // Loads what the tour form needs. id null = new tour.
 export async function TourEditor({ id, saved }: { id: number | null; saved?: boolean }) {
@@ -14,11 +13,5 @@ export async function TourEditor({ id, saved }: { id: number | null; saved?: boo
   // Keep a value that's no longer in the lists selectable.
   if (tour?.category && !categories.some((c) => c.key === tour.category)) categories.push({ key: tour.category, label: tour.category });
   if (tour?.region && !regions.some((r) => r.key === tour.region)) regions.push({ key: tour.region, label: tour.region });
-  const stored = tourAr(tour?.ar);
-  const ar = {
-    title: stored.title || tour?.titleAr || "",
-    summary: stored.summary ?? "",
-    details: { ...emptyTourDetails, ...stored.details },
-  };
-  return <TourForm key={tour?.updatedAt} tour={tour} categories={categories} regions={regions} ar={ar} saved={saved} />;
+  return <TourForm key={tour?.updatedAt} tour={tour} categories={categories} regions={regions} saved={saved} />;
 }

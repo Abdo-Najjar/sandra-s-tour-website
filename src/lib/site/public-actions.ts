@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { bookings, db, messages, subscribers, tours } from "@/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { isLang, ui } from "./i18n";
+import { pick } from "./translatable";
 
 // Forms on the public website. Anyone can call these, so every field is
 // length-limited, a hidden "website" field catches simple bots, and each
@@ -53,7 +54,7 @@ export async function createBooking(_: PublicFormState, fd: FormData): Promise<P
     const tour = await db.query.tours.findFirst({ where: eq(tours.id, Number(tourValue)), columns: { id: true, title: true } });
     if (tour) {
       tourId = tour.id;
-      tourTitle = tour.title;
+      tourTitle = pick(tour.title, "en");
     }
   } else if (tourValue) {
     tourTitle = tourValue.slice(0, 200);

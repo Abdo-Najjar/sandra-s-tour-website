@@ -4,6 +4,7 @@ import { Card, ContentSkeleton, PageHeader } from "@/components/ui";
 import { NewLink } from "@/components/admin/new-link";
 import { DeletePageButton } from "@/components/admin/site-forms";
 import { getAdminPages } from "@/lib/queries";
+import { pick } from "@/lib/site/translatable";
 
 export const metadata = { title: "صفحات إضافية" };
 
@@ -30,7 +31,7 @@ async function PagesList() {
       {pages.map((p) => (
         <Card key={p.id} className="flex flex-wrap items-center gap-3">
           <Link href={`/admin/pages/${p.id}`} className="flex-1 hover:text-primary">
-            <div className="font-semibold" dir="auto">{p.title}</div>
+            <div className="font-semibold" dir="auto">{pick(p.title, "ar")}</div>
             <div className="text-xs text-muted" dir="ltr">/p/{p.slug}</div>
           </Link>
           {p.showInMenu && <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-semibold text-primary">في القائمة</span>}

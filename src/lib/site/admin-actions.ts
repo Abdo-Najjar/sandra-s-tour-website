@@ -17,11 +17,12 @@ import {
 } from "@/db";
 import { authorize } from "@/lib/auth";
 import type { ActionState } from "@/lib/actions";
-import { defaultContent, defaultSiteContent, siteRowId, withDefaults, type SiteSection } from "./content";
+import { defaultContent, defaultSiteContent, SITE_ROW_ID, siteDataBoth, type SiteSection } from "./content";
 import { isLang, type Lang } from "./i18n";
 import { TAGS } from "./data";
 import { conform, slugify } from "./shape";
-import { pageArTemplate, postArTemplate, tourDetails, tourDetailsTemplate } from "./tour";
+import { partialDetails, tourDetails } from "./tour";
+import { tr } from "./translatable";
 
 // Dashboard actions for the public website. Admins and editors may use all
 // of them. Each change expires the matching public cache tag so the website
@@ -43,6 +44,9 @@ function parseJson(raw: FormDataEntryValue | null): unknown {
   }
 }
 
+// A bilingual field from the form: `key` is English, `arKey` Arabic.
+const trField = (fd: FormData, key: string, arKey: string, max = 500) => tr(str(fd, key, max), str(fd, arKey, max));
+
 async function uniqueSlug(table: typeof tours | typeof posts | typeof pages, wanted: string, id?: number) {
   const base = slugify(wanted) || "item";
   for (let i = 0; i < 50; i++) {
@@ -57,15 +61,6 @@ async function uniqueSlug(table: typeof tours | typeof posts | typeof pages, wan
   return `${base}-${Date.now()}`;
 }
 
-// Keeps only the Arabic fields that were filled in; empty ones fall back to English.
-function onlyFilled(obj: Record<string, unknown>) {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (typeof v === "string" ? v.trim() : Array.isArray(v) ? v.length : v !== undefined && v !== null) out[k] = v;
-  }
-  return out;
-}
-
 // ---------- Site content ----------
 
 export async function saveSiteSection(section: SiteSection, lang: Lang, _: ActionState, fd: FormData): Promise<ActionState> {
@@ -75,10 +70,10 @@ export async function saveSiteSection(section: SiteSection, lang: Lang, _: Actio
   const value = parseJson(fd.get("data"));
   if (value === undefined) return { error: "تعذر قراءة البيانات" };
 
-  const id = siteRowId(lang);
+  const id = SITE_ROW_ID;
   const row = await db.query.site.findFirst({ where: eq(site.id, id) });
-  const current = withDefaults(row?.data, lang);
-  const next = { ...current, [section]: conform(value, defaultContent(lang)[section]) };
+  const both = siteDataBoth(row?.data);
+  const next = { ...both, [lang]: { ...both[lang], [section]: conform(value, defaultContent(lang)[section]) } };
 
   await db
     .insert(site)
@@ -91,9 +86,10 @@ export async function saveSiteSection(section: SiteSection, lang: Lang, _: Actio
 export async function resetSiteSection(section: SiteSection, lang: Lang) {
   if (!(await authorize(["admin"]))) return;
   if (!(section in defaultSiteContent) || !isLang(lang)) return;
-  const id = siteRowId(lang);
+  const id = SITE_ROW_ID;
   const row = await db.query.site.findFirst({ where: eq(site.id, id) });
-  const next = { ...withDefaults(row?.data, lang), [section]: defaultContent(lang)[section] };
+  const both = siteDataBoth(row?.data);
+  const next = { ...both, [lang]: { ...both[lang], [section]: defaultContent(lang)[section] } };
   await db
     .insert(site)
     .values({ id, data: next })
@@ -114,25 +110,17 @@ export async function saveTour(id: number | null, _: ActionState, fd: FormData):
   if (!(price >= 0)) return { error: "السعر غير صحيح" };
   if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 365) return { error: "عدد الأيام يجب أن يكون بين 1 و 365" };
 
-  const details = parseJson(fd.get("details"));
-  const arTitle = str(fd, "arTitle", 200);
-  const ar = {
-    title: arTitle,
-    summary: str(fd, "arSummary", 2000),
-    details: onlyFilled(conform(parseJson(fd.get("arDetails")), tourDetailsTemplate)),
-  };
   const values = {
-    title,
-    titleAr: arTitle,
-    ar,
+    title: tr(title, str(fd, "arTitle", 200)),
     slug: await uniqueSlug(tours, str(fd, "slug", 100) || title, id ?? undefined),
     category: str(fd, "category", 50),
     region: str(fd, "region", 50),
     image: str(fd, "image", 500),
     price,
     durationDays,
-    summary: str(fd, "summary", 2000),
-    details: tourDetails(details),
+    summary: trField(fd, "summary", "arSummary", 2000),
+    // Arabic keeps only the filled-in fields; the rest falls back to English.
+    details: { en: tourDetails(parseJson(fd.get("details"))), ar: partialDetails(parseJson(fd.get("arDetails"))) },
     featured: bool(fd, "featured"),
     published: bool(fd, "published"),
     sortOrder: Number.isInteger(num(fd, "sortOrder")) ? num(fd, "sortOrder") : 0,
@@ -175,28 +163,15 @@ export async function savePost(id: number | null, _: ActionState, fd: FormData):
   const date = str(fd, "publishedAt", 10);
 
   const values = {
-    title,
+    title: tr(title, str(fd, "arTitle", 300)),
     slug: await uniqueSlug(posts, str(fd, "slug", 100) || title, id ?? undefined),
-    category: str(fd, "category", 120),
-    ar: onlyFilled(
-      conform(
-        {
-          title: str(fd, "arTitle", 300),
-          category: str(fd, "arCategory", 120),
-          excerpt: str(fd, "arExcerpt", 1000),
-          author: str(fd, "arAuthor", 200),
-          tags: str(fd, "arTags", 300),
-          body: str(fd, "arBody", 100_000),
-        },
-        postArTemplate,
-      ),
-    ),
-    excerpt: str(fd, "excerpt", 1000),
+    category: trField(fd, "category", "arCategory", 120),
+    excerpt: trField(fd, "excerpt", "arExcerpt", 1000),
     cover: str(fd, "cover", 500),
-    author: str(fd, "author", 200),
+    author: trField(fd, "author", "arAuthor", 200),
     readMinutes: Math.max(1, Math.min(120, Math.round(num(fd, "readMinutes")) || 5)),
-    tags: str(fd, "tags", 300),
-    body: str(fd, "body", 100_000),
+    tags: trField(fd, "tags", "arTags", 300),
+    body: trField(fd, "body", "arBody", 100_000),
     publishedAt: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : new Date().toISOString().slice(0, 10),
     featured: bool(fd, "featured"),
     published: bool(fd, "published"),
@@ -236,14 +211,11 @@ export async function savePage(id: number | null, _: ActionState, fd: FormData):
   const title = str(fd, "title", 200);
   if (!title) return { error: "اكتب عنوان الصفحة" };
   const values = {
-    title,
+    title: tr(title, str(fd, "arTitle", 200)),
     slug: await uniqueSlug(pages, str(fd, "slug", 100) || title, id ?? undefined),
-    subtitle: str(fd, "subtitle", 300),
-    ar: onlyFilled(
-      conform({ title: str(fd, "arTitle", 200), subtitle: str(fd, "arSubtitle", 300), body: str(fd, "arBody", 100_000) }, pageArTemplate),
-    ),
+    subtitle: trField(fd, "subtitle", "arSubtitle", 300),
     image: str(fd, "image", 500),
-    body: str(fd, "body", 100_000),
+    body: trField(fd, "body", "arBody", 100_000),
     published: bool(fd, "published"),
     showInMenu: bool(fd, "showInMenu"),
     sortOrder: Number.isInteger(num(fd, "sortOrder")) ? num(fd, "sortOrder") : 0,

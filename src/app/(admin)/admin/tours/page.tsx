@@ -5,6 +5,7 @@ import { NewLink } from "@/components/admin/new-link";
 import { TourRowActions } from "@/components/admin/site-forms";
 import { formatMoney } from "@/lib/format";
 import { getAdminTours } from "@/lib/queries";
+import { pick } from "@/lib/site/translatable";
 
 export const metadata = { title: "الجولات" };
 
@@ -44,8 +45,8 @@ async function ToursList() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={t.image || "/site/logo.png"} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
                     <div>
-                      <div className="font-semibold" dir="auto">{t.titleAr || t.title}</div>
-                      <div className="text-xs text-muted" dir="ltr">{t.title}</div>
+                      <div className="font-semibold" dir="auto">{pick(t.title, "ar")}</div>
+                      <div className="text-xs text-muted" dir="ltr">{pick(t.title, "en")}</div>
                     </div>
                   </Link>
                 </td>

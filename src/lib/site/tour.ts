@@ -1,4 +1,6 @@
+import type { Lang } from "./i18n";
 import { conform } from "./shape";
+import { trObject, type Tr } from "./translatable";
 
 // Extra tour fields stored in the `details` JSON column. Arrays hold one
 // sample item that defines the shape of each entry (an empty tour gets []).
@@ -59,13 +61,9 @@ export const tourDurationGroups = [
   { key: "long", min: 8, max: 999 },
 ] as const;
 
-// ---------- Arabic versions ----------
-// Tours, posts and pages keep their Arabic text in an `ar` JSON column.
-// Any empty Arabic field falls back to the English one.
-
-export const tourArTemplate = { title: "", summary: "", details: tourDetailsTemplate };
-export const postArTemplate = { title: "", category: "", excerpt: "", author: "", tags: "", body: "" };
-export const pageArTemplate = { title: "", subtitle: "", body: "" };
+// ---------- Bilingual details ----------
+// The `details` column holds {"en": TourDetails, "ar": Partial<TourDetails>}.
+// Arabic keeps only the fields that were filled in; the rest falls back to English.
 
 function filled(v: unknown) {
   return typeof v === "string" ? v.trim() !== "" : Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null;
@@ -79,18 +77,25 @@ export function overlay<T extends Record<string, unknown>>(base: T, ar: Partial<
   return out as T;
 }
 
-// Stored `ar` JSON for a tour: only the keys that were actually given.
-export function tourAr(stored: unknown): { title?: string; summary?: string; details?: Partial<TourDetails> } {
+// Only the given (non-empty) fields, each in the right shape.
+export function partialDetails(stored: unknown): Partial<TourDetails> {
   const src = stored && typeof stored === "object" ? (stored as Record<string, unknown>) : {};
-  const details = src.details && typeof src.details === "object" ? (src.details as Record<string, unknown>) : {};
   const d: Record<string, unknown> = {};
   for (const [k, t] of Object.entries(tourDetailsTemplate)) {
-    if (!(k in details)) continue;
-    d[k] = Array.isArray(t) ? (Array.isArray(details[k]) ? conform(details[k], t) : []) : conform(details[k], t);
+    if (!(k in src)) continue;
+    const v = Array.isArray(t) ? (Array.isArray(src[k]) ? conform(src[k], t) : []) : conform(src[k], t);
+    if (filled(v)) d[k] = v;
   }
-  return {
-    title: typeof src.title === "string" ? src.title : undefined,
-    summary: typeof src.summary === "string" ? src.summary : undefined,
-    details: d as Partial<TourDetails>,
-  };
+  return d as Partial<TourDetails>;
+}
+
+export function tourDetailsTr(stored: unknown): Tr<TourDetails, Partial<TourDetails>> {
+  const v = trObject(stored);
+  return { en: tourDetails(v.en), ar: partialDetails(v.ar) };
+}
+
+// The details for one language.
+export function localDetails(stored: unknown, lang: Lang): TourDetails {
+  const v = tourDetailsTr(stored);
+  return lang === "ar" ? overlay(v.en, v.ar) : v.en;
 }

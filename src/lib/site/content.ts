@@ -2,10 +2,11 @@ import { defaultSiteContentAr } from "./content-ar";
 import { faqEn } from "./faq";
 import type { Lang } from "./i18n";
 import { conform } from "./shape";
+import type { Tr } from "./translatable";
 
 // Every editable text and image on the public website, in English. The Arabic
 // copy has the same shape (content-ar.ts). The dashboard edits it section by
-// section (see SITE_SECTIONS); each language is one row of the `site` table.
+// section (see SITE_SECTIONS); both languages live in one row of the `site` table.
 
 const img = (n: string) => `/site/img${n}.jpg`;
 
@@ -663,14 +664,27 @@ export function defaultContent(lang: Lang): SiteContent {
   return lang === "ar" ? defaultSiteContentAr : defaultSiteContent;
 }
 
-// Each language is its own row in the `site` table.
-export const siteRowId = (lang: Lang) => (lang === "ar" ? 2 : 1);
+// All website text is one row in the `site` table: {"en": {...}, "ar": {...}}.
+export const SITE_ROW_ID = 1;
 
 // Stored JSON may be partial or from an older version: fill in the gaps
 // with that language's defaults.
 export function withDefaults(stored: unknown, lang: Lang = "en"): SiteContent {
   return conform(stored, defaultContent(lang));
 }
+
+// One language's website text from the stored {en, ar} row.
+export function siteData(stored: unknown, lang: Lang): SiteContent {
+  const o = stored && typeof stored === "object" ? (stored as Record<string, unknown>) : {};
+  return withDefaults(o[lang], lang);
+}
+
+// Both languages, complete (the value written back to the row).
+export function siteDataBoth(stored: unknown): Tr<SiteContent> {
+  return { en: siteData(stored, "en"), ar: siteData(stored, "ar") };
+}
+
+export const defaultSiteData = (): Tr<SiteContent> => ({ en: defaultSiteContent, ar: defaultSiteContentAr });
 
 // The dashboard edits the content one section at a time.
 export const SITE_SECTIONS: { key: SiteSection; label: string; description: string; preview: string }[] = [

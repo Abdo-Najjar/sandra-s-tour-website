@@ -3,6 +3,7 @@
 // Run on the server after updating the code and BEFORE `next build`
 // (the build pre-renders pages from the database):
 //   npm run db:push && npm run db:refresh-content && npm run build
+// (db:push first converts older databases to the {"en", "ar"} format.)
 //
 // 1. Saves a backup of the current website text in backups/.
 // 2. Resets the English and Arabic website text (dashboard → محتوى الموقع)
@@ -13,14 +14,20 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { eq, sql } from "drizzle-orm";
 import { db, pages, posts, site, tours } from "./index";
-import { defaultSiteContent } from "../lib/site/content";
-import { defaultSiteContentAr } from "../lib/site/content-ar";
-import { tourDetails } from "../lib/site/tour";
+import { defaultSiteData, SITE_ROW_ID } from "../lib/site/content";
+import { partialDetails, tourDetailsTr } from "../lib/site/tour";
+import { trText, type Tr } from "../lib/site/translatable";
 import { seedPosts, seedTours } from "./seed-site";
 import { mergeArDetails, postsAr, termsAr, toursAr } from "./seed-site-ar";
 
 const hasArabic = (v: unknown) => /[؀-ۿ]/.test(JSON.stringify(v ?? ""));
 const isEmpty = (v: unknown) => !v || (typeof v === "object" && Object.keys(v as object).length === 0);
+
+// English that still holds Arabic gets the sample English; an empty Arabic gets the sample Arabic.
+function fixText(stored: unknown, en: string, ar = ""): Tr {
+  const v = trText(stored);
+  return { en: hasArabic(v.en) && !hasArabic(en) ? en : v.en, ar: v.ar.trim() ? v.ar : ar };
+}
 
 async function main() {
   // 1. Backup
@@ -30,16 +37,12 @@ async function main() {
   writeFileSync(file, JSON.stringify(before, null, 2));
   console.log(`Backup of the old website text: ${file}`);
 
-  // 2. Website text, both languages
-  for (const [id, data] of [
-    [1, defaultSiteContent],
-    [2, defaultSiteContentAr],
-  ] as const) {
-    await db
-      .insert(site)
-      .values({ id, data })
-      .onConflictDoUpdate({ target: site.id, set: { data, updatedAt: sql`(datetime('now'))` } });
-  }
+  // 2. Website text, both languages, in one row
+  const data = defaultSiteData();
+  await db
+    .insert(site)
+    .values({ id: SITE_ROW_ID, data })
+    .onConflictDoUpdate({ target: site.id, set: { data, updatedAt: sql`(datetime('now'))` } });
   console.log("Website text updated (English and Arabic).");
 
   // 3a. Sample tours
@@ -47,40 +50,58 @@ async function main() {
   for (const seed of seedTours) {
     const row = await db.query.tours.findFirst({ where: eq(tours.slug, seed.slug) });
     if (!row) continue;
-    const details: Record<string, unknown> = { ...tourDetails(row.details) };
-    for (const [key, value] of Object.entries(seed.details)) {
-      if (hasArabic(details[key]) && !hasArabic(value)) details[key] = value;
-    }
     const ar = toursAr[seed.slug];
+    const details = tourDetailsTr(row.details);
+    const en: Record<string, unknown> = { ...details.en };
+    for (const [key, value] of Object.entries(seed.details)) {
+      if (hasArabic(en[key]) && !hasArabic(value)) en[key] = value;
+    }
     await db
       .update(tours)
       .set({
-        title: hasArabic(row.title) ? seed.title : row.title,
-        summary: hasArabic(row.summary) ? seed.summary : row.summary,
-        details: tourDetails(details),
-        ...(ar && isEmpty(row.ar)
-          ? { ar: { title: ar.title, summary: ar.summary, details: mergeArDetails(seed.details, ar.details) }, titleAr: ar.title }
-          : {}),
+        title: fixText(row.title, seed.title, ar?.title),
+        summary: fixText(row.summary, seed.summary, ar?.summary),
+        details: {
+          en: en as typeof details.en,
+          ar: isEmpty(details.ar) && ar ? partialDetails(mergeArDetails(seed.details, ar.details)) : details.ar,
+        },
         updatedAt: sql`(datetime('now'))`,
       })
       .where(eq(tours.id, row.id));
     tourCount++;
   }
 
-  // 3b. Sample articles
+  // 3b. Sample articles: fill in missing Arabic
   let postCount = 0;
   for (const seed of seedPosts) {
-    const row = await db.query.posts.findFirst({ where: eq(posts.slug, seed.slug), columns: { id: true, ar: true } });
-    if (!row || !postsAr[seed.slug] || !isEmpty(row.ar)) continue;
-    await db.update(posts).set({ ar: postsAr[seed.slug], kickerAr: "" }).where(eq(posts.id, row.id));
+    const row = await db.query.posts.findFirst({ where: eq(posts.slug, seed.slug) });
+    const ar: Partial<Record<string, string>> | undefined = postsAr[seed.slug];
+    if (!row || !ar) continue;
+    await db
+      .update(posts)
+      .set({
+        title: fixText(row.title, seed.title, ar.title),
+        category: fixText(row.category, seed.category, ar.category),
+        excerpt: fixText(row.excerpt, seed.excerpt, ar.excerpt),
+        author: fixText(row.author, seed.author, ar.author),
+        tags: fixText(row.tags, seed.tags, ar.tags),
+        body: fixText(row.body, seed.body, ar.body),
+      })
+      .where(eq(posts.id, row.id));
     postCount++;
   }
 
   // 3c. Terms page
-  const terms = await db.query.pages.findFirst({ where: eq(pages.slug, "terms"), columns: { id: true, ar: true } });
-  if (terms && isEmpty(terms.ar)) await db.update(pages).set({ ar: termsAr }).where(eq(pages.id, terms.id));
+  const terms = await db.query.pages.findFirst({ where: eq(pages.slug, "terms") });
+  if (terms) {
+    const keep = (v: unknown, ar: string) => ({ ...trText(v), ar: trText(v).ar.trim() || ar });
+    await db
+      .update(pages)
+      .set({ title: keep(terms.title, termsAr.title), subtitle: keep(terms.subtitle, termsAr.subtitle), body: keep(terms.body, termsAr.body) })
+      .where(eq(pages.id, terms.id));
+  }
 
-  console.log(`Sample content checked: ${tourCount} tours, ${postCount} articles given Arabic versions.`);
+  console.log(`Sample content checked: ${tourCount} tours, ${postCount} articles.`);
   console.log("Done. Rebuild / restart the website so it shows the new text.");
 }
 

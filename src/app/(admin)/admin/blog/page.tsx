@@ -5,6 +5,7 @@ import { Card, ContentSkeleton, PageHeader } from "@/components/ui";
 import { NewLink } from "@/components/admin/new-link";
 import { PostRowActions } from "@/components/admin/site-forms";
 import { getAdminPosts } from "@/lib/queries";
+import { pick } from "@/lib/site/translatable";
 
 export const metadata = { title: "المدونة" };
 
@@ -44,13 +45,13 @@ async function PostsList() {
                     <div>
                       <div className="flex items-center gap-1.5 font-semibold" dir="auto">
                         {p.featured && <Star className="size-3.5 shrink-0 fill-current text-warning" />}
-                        {p.title}
+                        {pick(p.title, "ar")}
                       </div>
-                      <div className="text-xs text-muted">{p.author}</div>
+                      <div className="text-xs text-muted" dir="auto">{pick(p.author, "ar")}</div>
                     </div>
                   </Link>
                 </td>
-                <td className="px-5 py-3">{p.category}</td>
+                <td className="px-5 py-3" dir="auto">{pick(p.category, "ar")}</td>
                 <td className="px-5 py-3 whitespace-nowrap text-muted" dir="ltr">{p.publishedAt}</td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end">
