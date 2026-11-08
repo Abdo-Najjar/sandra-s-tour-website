@@ -1,12 +1,15 @@
-import Link from "next/link";
-import { Ar, Container, Eyebrow, Icon, SectionTitle, Stars, initials } from "@/components/site/bits";
+import { Container, Eyebrow, Icon, SectionTitle, Stars, initials } from "@/components/site/bits";
 import { PostCard, TourCard } from "@/components/site/cards";
+import { Link } from "@/components/site/lang";
 import { getPosts, getSite, getTours } from "@/lib/site/data";
+import { localHref } from "@/lib/site/i18n";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl, whatsappLink } from "@/lib/site/shape";
 import { tourDurationGroups } from "@/lib/site/tour";
 
 export default async function HomePage() {
-  const [site, tours, posts] = await Promise.all([getSite(), getTours(), getPosts()]);
+  const { lang, t } = await getUi();
+  const [site, tours, posts] = await Promise.all([getSite(lang), getTours(lang), getPosts(lang)]);
   const { home, general, contact } = site;
   const featured = (tours.some((t) => t.featured) ? tours.filter((t) => t.featured) : tours).slice(0, 3);
   const select =
@@ -27,12 +30,6 @@ export default async function HomePage() {
             <div className="inline-flex items-center gap-2 rounded-full border border-antique-gold/30 bg-white/10 px-3 py-1.5 text-label-md text-surface-container shadow-sm backdrop-blur-md">
               <Icon name="verified" className="text-[18px] text-antique-gold" />
               <span>{home.hero.badge}</span>
-              {home.hero.badgeAr && (
-                <>
-                  <span className="opacity-60">|</span>
-                  <Ar className="font-semibold text-antique-gold">{home.hero.badgeAr}</Ar>
-                </>
-              )}
             </div>
             {home.hero.status && (
               <div className="flex items-center gap-3 text-label-md text-surface-container-high/90">
@@ -42,10 +39,10 @@ export default async function HomePage() {
             )}
           </div>
           <div className="mb-space-2xl max-w-3xl">
-            {home.hero.kickerAr && (
+            {home.hero.kicker && (
               <div className="mb-space-sm flex items-center gap-3">
                 <span className="h-px w-12 bg-antique-gold" />
-                <Ar className="font-arabic-display text-headline-sm font-bold text-antique-gold">{home.hero.kickerAr}</Ar>
+                <span className="font-display text-headline-sm font-bold text-antique-gold">{home.hero.kicker}</span>
               </div>
             )}
             <h1 className="mb-space-md font-display text-display-hero-mobile leading-none font-bold tracking-tight text-white md:text-display-hero">
@@ -55,54 +52,53 @@ export default async function HomePage() {
           </div>
 
           <div className="w-full rounded-xl border border-antique-gold/20 bg-surface/95 p-space-md shadow-2xl backdrop-blur-xl md:p-space-lg">
-            <form action="/tours" className="grid grid-cols-1 items-end gap-space-md sm:grid-cols-2 lg:grid-cols-12">
+            <form action={localHref("/tours", lang)} className="grid grid-cols-1 items-end gap-space-md sm:grid-cols-2 lg:grid-cols-12">
               <label className="flex flex-col gap-1.5 lg:col-span-4">
                 <span className="flex items-center gap-1.5 text-label-lg font-semibold text-primary">
-                  <Icon name="pin_drop" className="text-[18px] text-antique-gold" /> Key Regions
+                  <Icon name="pin_drop" className="text-[18px] text-antique-gold" /> {t.keyRegions}
                 </span>
                 <span className="relative">
                   <select name="region" defaultValue="" className={select}>
-                    <option value="">All Heritage Corridors</option>
+                    <option value="">{t.allRegions}</option>
                     {site.tours.filters.regions.map((r) => (
                       <option key={r.key} value={r.key}>
                         {r.label}
                       </option>
                     ))}
                   </select>
-                  <Icon name="expand_more" className="pointer-events-none absolute top-3 right-3 text-[20px] text-outline" />
+                  <Icon name="expand_more" className="pointer-events-none absolute top-3 end-3 text-[20px] text-outline" />
                 </span>
               </label>
               <label className="flex flex-col gap-1.5 lg:col-span-3">
                 <span className="flex items-center gap-1.5 text-label-lg font-semibold text-primary">
-                  <Icon name="account_balance" className="text-[18px] text-antique-gold" /> Expedition Style
+                  <Icon name="account_balance" className="text-[18px] text-antique-gold" /> {t.tourStyle}
                 </span>
                 <span className="relative">
                   <select name="category" defaultValue="" className={select}>
-                    <option value="">All Styles</option>
+                    <option value="">{t.allStyles}</option>
                     {site.tours.filters.categories.map((c) => (
                       <option key={c.key} value={c.key}>
-                        {c.en}
+                        {c.label}
                       </option>
                     ))}
                   </select>
-                  <Icon name="expand_more" className="pointer-events-none absolute top-3 right-3 text-[20px] text-outline" />
+                  <Icon name="expand_more" className="pointer-events-none absolute top-3 end-3 text-[20px] text-outline" />
                 </span>
               </label>
               <label className="flex flex-col gap-1.5 lg:col-span-3">
                 <span className="flex items-center gap-1.5 text-label-lg font-semibold text-primary">
-                  <Icon name="calendar_month" className="text-[18px] text-antique-gold" /> Duration
+                  <Icon name="calendar_month" className="text-[18px] text-antique-gold" /> {t.duration}
                 </span>
                 <span className="relative">
                   <select name="duration" defaultValue="" className={select}>
-                    <option value="">Any Duration</option>
+                    <option value="">{t.anyDuration}</option>
                     {tourDurationGroups.map((g) => (
                       <option key={g.key} value={g.key}>
-                        {g.min}
-                        {g.max < 999 ? `–${g.max}` : "+"} days
+                        {t.daysRange(g.min, g.max)}
                       </option>
                     ))}
                   </select>
-                  <Icon name="expand_more" className="pointer-events-none absolute top-3 right-3 text-[20px] text-outline" />
+                  <Icon name="expand_more" className="pointer-events-none absolute top-3 end-3 text-[20px] text-outline" />
                 </span>
               </label>
               <div className="lg:col-span-2">
@@ -147,12 +143,8 @@ export default async function HomePage() {
               </div>
               <div className="mt-space-md flex flex-col items-start justify-between gap-space-md rounded-xl border border-antique-gold/20 bg-surface-container p-space-lg shadow-sm md:flex-row">
                 <div className="space-y-1">
-                  <Ar as="div" className="font-arabic-display text-headline-md font-bold text-primary">
-                    {home.mission.quoteAr}
-                  </Ar>
-                  <Ar as="p" className="text-arabic-body text-on-surface-variant">
-                    {home.mission.quoteTextAr}
-                  </Ar>
+                  <div className="font-display text-headline-md font-bold text-primary">{home.mission.quote}</div>
+                  <p className="text-body-md text-on-surface-variant">{home.mission.quoteText}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 pt-2 md:pt-0">
                   <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-antique-gold/30 bg-surface-container-lowest shadow-sm">
@@ -172,7 +164,7 @@ export default async function HomePage() {
                 <img src={safeUrl(home.mission.image, "/site/img04.jpg")} alt="" loading="lazy" className="size-full object-cover" />
               </div>
               {home.mission.cardTitle && (
-                <div className="absolute -bottom-space-lg -left-space-md z-20 w-3/4 rounded-xl border border-antique-gold/30 bg-surface-container-lowest p-space-md shadow-xl md:-left-space-lg">
+                <div className="absolute -bottom-space-lg -start-space-md z-20 w-3/4 rounded-xl border border-antique-gold/30 bg-surface-container-lowest p-space-md shadow-xl md:-start-space-lg">
                   <div className="flex items-center gap-space-sm">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-heritage-olive-light text-heritage-olive">
                       <Icon name={home.mission.cardIcon} />
@@ -200,7 +192,7 @@ export default async function HomePage() {
             </div>
             <div className="flex shrink-0 items-center gap-space-sm">
               <span className="text-label-md text-on-surface-variant">
-                Showing {featured.length} of {tours.length} routes
+                {t.showingRoutes(featured.length, tours.length)}
               </span>
               <Link
                 href="/tours"
@@ -310,7 +302,7 @@ export default async function HomePage() {
                 <figure key={t.name} className="flex flex-col justify-between rounded-xl border border-surface-container-high bg-surface-container-lowest p-space-lg shadow-sm">
                   <div>
                     <Stars className="mb-space-sm" />
-                    <blockquote className="mb-space-md text-body-md text-on-surface italic" dir="auto">
+                    <blockquote className="mb-space-md text-body-md text-on-surface italic">
                       “{t.quote}”
                     </blockquote>
                   </div>
@@ -355,8 +347,8 @@ export default async function HomePage() {
 
       {/* Call to action */}
       <section className="relative w-full overflow-hidden bg-basalt-charcoal py-space-3xl text-surface">
-        <div className="pointer-events-none absolute -top-40 -right-40 size-96 rounded-full bg-primary/40 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 -left-40 size-96 rounded-full bg-antique-gold/20 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 -end-40 size-96 rounded-full bg-primary/40 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -start-40 size-96 rounded-full bg-antique-gold/20 blur-3xl" />
         <Container className="relative z-10">
           <div className="grid grid-cols-1 items-center gap-space-2xl lg:grid-cols-12">
             <div className="flex flex-col gap-space-sm lg:col-span-8">

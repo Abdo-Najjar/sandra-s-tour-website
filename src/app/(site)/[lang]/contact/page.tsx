@@ -1,19 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
-import { Ar, Container, Eyebrow, Icon, SectionTitle } from "@/components/site/bits";
+import { Container, Eyebrow, Icon, SectionTitle } from "@/components/site/bits";
 import { BookingForm, BookingFormFromUrl, PartnershipForm } from "@/components/site/forms";
+import { Link } from "@/components/site/lang";
 import { getSite, getTours } from "@/lib/site/data";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl, whatsappLink } from "@/lib/site/shape";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { contactPage } = await getSite();
-  return { title: "Contact & Booking", description: contactPage.hero.text };
+  const { lang, t } = await getUi();
+  const { contactPage } = await getSite(lang);
+  return { title: t.contactTitle, description: contactPage.hero.text };
 }
 
 export default async function ContactPage() {
-  const [site, tours] = await Promise.all([getSite(), getTours()]);
+  const { lang, t } = await getUi();
+  const [site, tours] = await Promise.all([getSite(lang), getTours(lang)]);
   const { contactPage: page, contact, general } = site;
+
+  // FAQ items grouped under their section headings, numbered across the page.
+  const faqGroups: { group: string; items: { q: string; a: string; n: number }[] }[] = [];
+  page.faq.items.forEach((f, i) => {
+    const last = faqGroups[faqGroups.length - 1];
+    const item = { q: f.q, a: f.a, n: i + 1 };
+    if (last && last.group === f.group) last.items.push(item);
+    else faqGroups.push({ group: f.group, items: [item] });
+  });
 
   const formProps = {
     tours: tours.map((t) => ({ id: t.id, title: t.title, durationLabel: t.details.durationLabel })),
@@ -32,9 +44,9 @@ export default async function ContactPage() {
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-2 text-label-md text-on-surface-variant">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5">
             <Link href="/" className="hover:text-primary">
-              Home
+              {t.home}
             </Link>
-            /<span className="text-antique-gold-dark">Contact &amp; Booking</span>
+            /<span className="text-antique-gold-dark">{t.contactTitle}</span>
           </nav>
           <span className="flex items-center gap-2 text-heritage-olive">
             <span className="size-2 animate-pulse rounded-full bg-heritage-olive" />
@@ -49,9 +61,6 @@ export default async function ContactPage() {
           <div className="lg:col-span-8">
             <Eyebrow icon="flight_takeoff">{page.hero.eyebrow}</Eyebrow>
             <h1 className="font-display text-display-hero-mobile font-bold tracking-tight text-primary md:text-display-hero">{page.hero.title}</h1>
-            <Ar as="p" className="mt-1 text-headline-sm font-bold text-heritage-olive">
-              {page.hero.titleAr}
-            </Ar>
             <p className="mt-space-md max-w-3xl text-body-lead text-on-surface-variant">{page.hero.text}</p>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-antique-gold/30 bg-surface-container-lowest p-space-md shadow-sm lg:col-span-4">
@@ -72,9 +81,6 @@ export default async function ContactPage() {
           <div id="booking" className="scroll-mt-28 rounded-2xl border border-surface-container-high bg-surface-container-lowest p-space-lg shadow-xl md:p-space-xl lg:col-span-7">
             <div className="mb-space-lg">
               <h2 className="font-display text-headline-lg text-primary">{page.form.title}</h2>
-              <Ar as="p" className="text-body-md font-semibold text-heritage-olive">
-                {page.form.titleAr}
-              </Ar>
               <p className="mt-2 text-body-sm text-on-surface-variant">{page.form.text}</p>
             </div>
             <Suspense fallback={<BookingForm {...formProps} />}>
@@ -84,7 +90,7 @@ export default async function ContactPage() {
 
           <div className="space-y-space-lg lg:sticky lg:top-24 lg:col-span-5">
             <div className="relative overflow-hidden rounded-2xl bg-primary p-space-lg text-white shadow-xl">
-              <Icon name="explore" className="pointer-events-none absolute -top-6 -right-6 text-[140px] text-white/5" />
+              <Icon name="explore" className="pointer-events-none absolute -top-6 -end-6 text-[140px] text-white/5" />
               <div className="flex items-center justify-between text-label-md">
                 <span className="text-antique-gold">{page.assist.kicker}</span>
                 <span className="flex items-center gap-1.5 rounded-full bg-heritage-olive px-2.5 py-1">
@@ -123,10 +129,10 @@ export default async function ContactPage() {
                 <Icon name="verified_user" className="text-antique-gold-dark" />
                 {page.steps.title}
               </h2>
-              <ol className="mt-space-md space-y-space-md border-l-2 border-antique-gold/40 pl-space-md">
+              <ol className="mt-space-md space-y-space-md border-s-2 border-antique-gold/40 ps-space-md">
                 {page.steps.items.map((s, i) => (
                   <li key={s.title} className="relative">
-                    <span className="absolute top-0 -left-[calc(1rem+13px)] flex size-6 items-center justify-center rounded-full bg-antique-gold text-label-md font-bold text-white">
+                    <span className="absolute top-0 -start-[calc(1rem+13px)] flex size-6 items-center justify-center rounded-full bg-antique-gold text-label-md font-bold text-white">
                       {i + 1}
                     </span>
                     <h3 className="font-sans text-label-lg font-semibold text-primary">{s.title}</h3>
@@ -144,9 +150,7 @@ export default async function ContactPage() {
                     <Icon name={o.icon || "location_on"} className="text-antique-gold-dark" />
                     <div>
                       <h3 className="font-sans text-label-lg font-semibold text-primary">{o.title}</h3>
-                      <p className="text-body-sm text-on-surface-variant" dir="auto">
-                        {o.address}
-                      </p>
+                      <p className="text-body-sm text-on-surface-variant">{o.address}</p>
                       <p className="text-label-md text-heritage-olive">{o.hours}</p>
                     </div>
                   </div>
@@ -170,9 +174,7 @@ export default async function ContactPage() {
           <div className="mx-auto mb-space-2xl max-w-3xl text-center">
             <Eyebrow icon="handshake">{page.partnership.eyebrow}</Eyebrow>
             <SectionTitle>{page.partnership.title}</SectionTitle>
-            <Ar as="p" className="mt-2 text-body-lead font-bold text-heritage-olive">
-              {page.partnership.questionAr}
-            </Ar>
+            {page.partnership.question && <p className="mt-2 text-body-lead font-bold text-heritage-olive">{page.partnership.question}</p>}
             <p className="mt-2 text-body-lead text-on-surface-variant">{page.partnership.text}</p>
           </div>
           <div className="grid gap-space-lg md:grid-cols-3">
@@ -180,9 +182,6 @@ export default async function ContactPage() {
               <div key={g.title} className="rounded-xl border border-surface-container-high bg-surface-container-lowest p-space-lg shadow-sm">
                 <Icon name={g.icon} className="text-[32px] text-antique-gold-dark" />
                 <h3 className="mt-space-sm font-sans text-headline-sm font-semibold text-primary">{g.title}</h3>
-                <Ar as="p" className="text-body-sm font-semibold text-heritage-olive">
-                  {g.titleAr}
-                </Ar>
                 <p className="mt-2 text-body-sm text-on-surface-variant">{g.text}</p>
                 <span className="mt-space-md flex items-center gap-1 text-label-md font-semibold text-primary">
                   <Icon name="check_circle" className="text-[16px] text-heritage-olive" /> {g.tag}
@@ -204,9 +203,6 @@ export default async function ContactPage() {
                     </span>
                     <div>
                       <h4 className="font-sans text-label-lg font-semibold text-primary">{b.title}</h4>
-                      <Ar as="p" className="text-body-sm text-heritage-olive">
-                        {b.titleAr}
-                      </Ar>
                       <p className="text-body-sm text-on-surface-variant">{b.text}</p>
                     </div>
                   </li>
@@ -219,9 +215,6 @@ export default async function ContactPage() {
             </div>
             <div className="rounded-2xl border border-antique-gold/20 bg-surface-container-lowest p-space-lg shadow-xl md:p-space-xl">
               <h3 className="font-display text-headline-md text-primary">{page.partnership.formTitle}</h3>
-              <Ar as="p" className="text-body-md font-semibold text-heritage-olive">
-                {page.partnership.formTitleAr}
-              </Ar>
               <p className="mt-2 mb-space-lg text-body-sm text-on-surface-variant">{page.partnership.formText}</p>
               <PartnershipForm
                 categories={page.partnership.categories.map((c) => c.text)}
@@ -291,20 +284,26 @@ export default async function ContactPage() {
               </a>
             </div>
           </div>
-          <div className="space-y-3 lg:col-span-8">
-            {page.faq.items.map((f, i) => (
-              <details key={f.q} open={i === 0} className="group overflow-hidden rounded-xl border border-surface-container-high bg-surface-container-lowest shadow-sm">
-                <summary className="flex cursor-pointer list-none items-center gap-4 p-space-md">
-                  <span className="font-display text-headline-sm text-antique-gold">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="flex-1 font-sans text-body-md font-semibold text-primary" dir="auto">
-                    {f.q}
-                  </span>
-                  <Icon name="expand_more" className="text-antique-gold-dark transition-transform group-open:rotate-180" />
-                </summary>
-                <p className="px-space-md pb-space-md pl-[3.75rem] text-body-md text-on-surface-variant" dir="auto">
-                  {f.a}
-                </p>
-              </details>
+          <div className="space-y-space-xl lg:col-span-8">
+            {faqGroups.map((g) => (
+              <div key={g.group || "faq"} className="space-y-3">
+                {g.group && (
+                  <h3 className="flex items-center gap-2 border-b border-antique-gold/30 pb-2 font-display text-headline-sm text-primary">
+                    <Icon name="help" className="text-[20px] text-antique-gold-dark" />
+                    {g.group}
+                  </h3>
+                )}
+                {g.items.map((f) => (
+                  <details key={f.n} open={f.n === 1} className="group overflow-hidden rounded-xl border border-surface-container-high bg-surface-container-lowest shadow-sm">
+                    <summary className="flex cursor-pointer list-none items-center gap-4 p-space-md">
+                      <span className="font-display text-headline-sm text-antique-gold">{String(f.n).padStart(2, "0")}</span>
+                      <span className="flex-1 font-sans text-body-md font-semibold text-primary">{f.q}</span>
+                      <Icon name="expand_more" className="shrink-0 text-antique-gold-dark transition-transform group-open:rotate-180" />
+                    </summary>
+                    <p className="px-space-md pb-space-md ps-[3.75rem] text-body-md whitespace-pre-line text-on-surface-variant">{f.a}</p>
+                  </details>
+                ))}
+              </div>
             ))}
           </div>
         </Container>
@@ -318,7 +317,7 @@ export default async function ContactPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={safeUrl(g.image, "")} alt={g.title} loading="lazy" className="aspect-[4/3] w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent" />
-                <figcaption className="absolute right-4 bottom-4 left-4 text-white">
+                <figcaption className="absolute inset-x-4 bottom-4 text-white">
                   <div className="font-display text-headline-sm">{g.title}</div>
                   <div className="text-label-md opacity-85">{g.text}</div>
                 </figcaption>

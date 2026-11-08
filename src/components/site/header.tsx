@@ -1,14 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { stripLang } from "@/lib/site/i18n";
 import { safeUrl } from "@/lib/site/shape";
 import { Icon } from "./bits";
+import { LanguageSwitch, Link, useUi } from "./lang";
 
 type MenuItem = { label: string; href: string };
 
-function isActive(pathname: string, href: string) {
+function isActive(fullPath: string, href: string) {
+  const pathname = stripLang(fullPath);
   const path = href.split("#")[0];
   if (!path || href.includes("#")) return false;
   return path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`);
@@ -30,6 +32,7 @@ export function SiteHeader({
   bookHref: string;
 }) {
   const pathname = usePathname();
+  const t = useUi();
   const [open, setOpen] = useState(false);
 
   return (
@@ -67,6 +70,7 @@ export function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-space-sm">
+          <LanguageSwitch />
           <Link
             href={safeUrl(bookHref, "/contact")}
             className="hidden items-center justify-center gap-2 rounded-lg border border-antique-gold/40 bg-primary px-space-lg py-2.5 text-label-lg font-medium text-white shadow-md transition-all hover:bg-primary-light hover:shadow-xl sm:inline-flex"
@@ -79,7 +83,7 @@ export function SiteHeader({
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t.closeMenu : t.openMenu}
             className="flex size-11 items-center justify-center rounded-lg border border-surface-container-high text-primary xl:hidden"
           >
             <Icon name={open ? "close" : "menu"} />

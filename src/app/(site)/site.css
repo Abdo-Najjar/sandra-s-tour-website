@@ -117,6 +117,29 @@
   textarea {
     font: inherit;
   }
+
+  /* Arabic website: Arabic fonts everywhere, no letter spacing (it breaks
+     the joined letters), no slanted text, and arrows point the other way. */
+  html:lang(ar) {
+    --font-sans: var(--font-cairo), ui-sans-serif, sans-serif;
+    --font-body: var(--font-cairo), ui-sans-serif, sans-serif;
+    --font-serif: var(--font-amiri), var(--font-cairo), serif;
+    --font-display: var(--font-amiri), var(--font-cairo), serif;
+  }
+  html:lang(ar) body,
+  html:lang(ar) *:not(.material-symbols-outlined) {
+    letter-spacing: 0 !important;
+  }
+  html:lang(ar) .italic {
+    font-style: normal;
+  }
+  html:lang(ar) h1,
+  html:lang(ar) h2 {
+    line-height: 1.45;
+  }
+  html[dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
 }
 
 @layer components {

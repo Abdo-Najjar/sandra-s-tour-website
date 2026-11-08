@@ -1,6 +1,8 @@
 // Website sample content from the Stitch "Syrian Local Guides" design.
 import { bookings, db, messages, pages, posts, site, subscribers, tours } from "./index";
 import { defaultSiteContent } from "../lib/site/content";
+import { defaultSiteContentAr } from "../lib/site/content-ar";
+import { mergeArDetails, postsAr, termsAr, toursAr } from "./seed-site-ar";
 import type { TourDetails } from "../lib/site/tour";
 
 const img = (n: string) => `/site/img${n}.jpg`;
@@ -28,7 +30,6 @@ const commonFaq = [
 type SeedTour = {
   slug: string;
   title: string;
-  titleAr: string;
   category: string;
   region: string;
   image: string;
@@ -43,7 +44,6 @@ const seedTours: SeedTour[] = [
   {
     slug: "grand-levant-odyssey",
     title: "The Grand Levant Odyssey",
-    titleAr: "رحلة المشرق الكبرى: من دمشق إلى تدمر وحلب",
     category: "unesco",
     region: "damascus",
     image: img("12"),
@@ -51,24 +51,23 @@ const seedTours: SeedTour[] = [
     durationDays: 10,
     featured: true,
     summary:
-      "ملحمة ثقافية شاملة تجمع دمشق، معلولا الآرامية، قلعة الحصن التاريخية، أسواق حلب القديمة، وواحة تدمر الخالدة بتواريخ ثابتة ومضمونة.",
+      "A comprehensive cultural odyssey linking Damascus, Aramaic-speaking Maaloula, the historic Krak des Chevaliers, the old souks of Aleppo and the timeless oasis of Palmyra, on fixed and guaranteed dates.",
     details: {
       badge: "UNESCO Highlights",
-      badgeAr: "رحلة ثابتة مجدولة",
       subtitle: "A 10-Day Comprehensive Odyssey Across Syria’s UNESCO Heritage",
       durationLabel: "10 Days / 9 Nights",
       groupLabel: "Max 8 Guests",
       pace: "Easy-Moderate",
       departureIcon: "verified",
-      departure: "انطلاق ثابت: السبت الأول والثالث من كل شهر",
-      departureTag: "كافة الأشهر",
+      departure: "Fixed departures: 1st & 3rd Saturday of every month",
+      departureTag: "Every month",
       rating: "4.98",
       reviews: "68",
       route: "Ministry Route #201",
       checklist: [
-        "مواعيد ثابتة ومضمونة شهرياً | Guaranteed Departures",
-        "فنادق بيوت تراثية في دمشق وحلب مع تصاريح أمنية وفيزا مسبقة",
-        "سيارة دفع رباعي مكيّفة حديثة مع مؤرخ وباحث أثري مرخص",
+        "Guaranteed monthly departures",
+        "Heritage-house hotels in Damascus and Aleppo with security clearances and visa pre-approval",
+        "Modern air-conditioned 4x4 with a licensed historian and archaeologist",
       ],
       specs: [
         { icon: "schedule", label: "Duration", value: "10 Days / 9 Nights", note: "Heritage Mansions" },
@@ -113,7 +112,6 @@ const seedTours: SeedTour[] = [
   {
     slug: "ancient-damascus-barada-valley",
     title: "Ancient Damascus & Barada Valley",
-    titleAr: "دمشق القديمة ورياض وادي بردى",
     category: "old-quarters",
     region: "damascus",
     image: img("13"),
@@ -121,24 +119,23 @@ const seedTours: SeedTour[] = [
     durationDays: 4,
     featured: true,
     summary:
-      "اكتشف أسرار أقدم عاصمة مأهولة في العالم: الجامع الأموي الكبير، قصر العظم، حرف الدامسكو، وبساتين بردى الهادئة في جولة مجدولة بأدق التفاصيل.",
+      "Discover the secrets of the world’s oldest inhabited capital: the Great Umayyad Mosque, Azem Palace, Damascene crafts and the quiet orchards of the Barada, on a carefully scheduled tour.",
     details: {
       badge: "Oldest Inhabited City",
-      badgeAr: "انطلاق أسبوعي ثابت",
       subtitle: "Courtyards, Souks & Ancient Churches of the World’s Oldest Capital",
       durationLabel: "4 Days / 3 Nights",
       groupIcon: "person",
-      groupLabel: "مجموعات ونخب",
+      groupLabel: "Small groups & private parties",
       pace: "Leisurely",
       departureIcon: "calendar_today",
-      departure: "تنطلق كل خميس أسبوعياً طوال أشهر السنة",
-      departureTag: "52 موعداً سنوياً",
+      departure: "Departs every Thursday, all year round",
+      departureTag: "52 dates a year",
       rating: "5.0",
       reviews: "94",
       checklist: [
-        "دخول مسائي خاص لقصر العظم وخانات الشارع المستقيم",
-        "لقاء مباشر مع شيوخ كار البروكار الدمشقي والموازييك",
-        "ضيافة دمشقية كاملة في دور ومطاعم البيوت الشامية العريقة",
+        "Private evening access to Azem Palace and the khans of Straight Street",
+        "Meet the master craftsmen of Damascene brocade and mosaic",
+        "Full Damascene hospitality in historic courtyard houses and restaurants",
       ],
       specs: [
         { icon: "schedule", label: "Duration", value: "4 Days / 3 Nights", note: "Courtyard boutique hotel" },
@@ -169,7 +166,6 @@ const seedTours: SeedTour[] = [
   {
     slug: "citadels-of-the-levant",
     title: "Citadels of the Levant",
-    titleAr: "حصون وقلاع المشرق: من حلب إلى الحصن",
     category: "forts",
     region: "coast",
     image: img("14"),
@@ -177,23 +173,22 @@ const seedTours: SeedTour[] = [
     durationDays: 6,
     featured: true,
     summary:
-      "تتبع العمارة العسكرية للشرق الأدنى من قلعة حلب الشامخة إلى قلعة الحصن وقلعة مصياف وصلاح الدين في مسار تاريخي ساحلي وجبلي منسق.",
+      "Trace the military architecture of the Near East from the towering Citadel of Aleppo to Krak des Chevaliers, Masyaf and Saladin’s Castle on a coordinated coastal and mountain route.",
     details: {
       badge: "Crusader & Ayyubid",
-      badgeAr: "رحلة نصف شهرية ثابتة",
       subtitle: "From the Citadel of Aleppo to the Crusader Coast",
       durationLabel: "6 Days / 5 Nights",
       groupLabel: "Max 10 Guests",
       pace: "Moderate",
       departureIcon: "event_repeat",
-      departure: "انطلاق دوري: 10 و 25 من كل شهر ميلادي",
-      departureTag: "على مدار العام",
+      departure: "Regular departures: the 10th & 25th of every month",
+      departureTag: "All year round",
       rating: "4.96",
       reviews: "38",
       checklist: [
-        "شروحات أثرية معمارية مباشرة داخل الحصون المنيعة",
-        "إقامة ساحلية فاخرة في طرطوس واللاذقية مع إطلالات بحرية",
-        "شامل كافة رسوم وتصاريح المعالم والمتاحف الوطنية",
+        "Expert architectural commentary inside the great fortresses",
+        "Sea-view coastal stays in Tartus and Latakia",
+        "All monument, museum and permit fees included",
       ],
       specs: [
         { icon: "schedule", label: "Duration", value: "6 Days / 5 Nights", note: "Coastal stays" },
@@ -223,30 +218,28 @@ const seedTours: SeedTour[] = [
   {
     slug: "living-stones-of-bosra",
     title: "The Living Stones of Bosra",
-    titleAr: "حجارة بصرى الشام الحية والجنوب السوري",
     category: "unesco",
     region: "damascus",
     image: img("15"),
     price: 320,
     durationDays: 2,
     summary:
-      "رحلة استكشافية حورانية لبصرى الشام ومدرجها الروماني الكامل المنحوت من البازلت الأسود وأوابد الأنباط والعهود الإسلامية المبكرة.",
+      "A Hauran expedition to Bosra and its complete Roman theatre carved from black basalt, with Nabataean and early Islamic monuments.",
     details: {
       badge: "Black Basalt City",
-      badgeAr: "رحلة نهاية الأسبوع الثابتة",
       subtitle: "The Black Basalt Roman Theatre & the Hauran Plains",
       durationLabel: "2 Days / 1 Night",
-      groupLabel: "حجم مرن",
+      groupLabel: "Flexible group size",
       pace: "Easy",
       departureIcon: "calendar_view_week",
-      departure: "مغادرة أسبوعية ثابتة كل جمعة وسبت",
-      departureTag: "جاهزة للحجز",
+      departure: "Weekly departures every Friday and Saturday",
+      departureTag: "Ready to book",
       rating: "4.95",
       reviews: "42",
       checklist: [
-        "تجربة صوتية هندسية مميزة داخل مسرح بصرى الروماني",
-        "زيارة كاتدرائيات بصرى البيزنطية ومسجد عمر بن الخطاب",
-        "وليمة حورانية أصيلة في بيت ريفي بضيافة زيت الزيتون وخبز الصاج",
+        "A unique acoustic experience inside Bosra’s Roman theatre",
+        "Bosra’s Byzantine cathedral and the Mosque of Omar",
+        "An authentic Hauran feast in a village home with olive oil and saj bread",
       ],
       overviewEyebrow: "Curatorial Perspective",
       overviewTitle: "A Roman Theatre Carved from Black Basalt",
@@ -267,7 +260,6 @@ const seedTours: SeedTour[] = [
   {
     slug: "palmyra-silk-road-desert-traverse",
     title: "Palmyra & The Silk Road Desert Traverse",
-    titleAr: "تدمر وعبور بادية طريق الحرير",
     category: "desert",
     region: "desert",
     image: img("19"),
@@ -278,22 +270,21 @@ const seedTours: SeedTour[] = [
       "A 2-day private archaeological expedition from Damascus with VIP security clearances, private historian accompaniment, and sunset access to the Valley of the Tombs.",
     details: {
       badge: "Queen Zenobia",
-      badgeAr: "رحلة منتظمة مجدولة",
       subtitle: "A 2-Day Curated Silk Road Expedition & Subterranean Field Study",
       durationLabel: "2 Days / 1 Night",
       groupIcon: "shield",
       groupLabel: "Max 8 Explorers or Private VIP",
       pace: "Moderate",
       departureIcon: "schedule",
-      departure: "انطلاق ثابت: منتصف ونهاية كل شهر",
-      departureTag: "تنسيق أمني مسبق",
+      departure: "Fixed departures: mid and end of every month",
+      departureTag: "Security pre-coordinated",
       rating: "4.98",
       reviews: "42",
       route: "Ministry Route #482",
       checklist: [
-        "مرافقة مدير أثري متخصص في تاريخ تدمر والشرق الروماني",
-        "مسار عبور آمن ومؤمن بتنسيق كامل مع غرف العمليات الرسمية",
-        "أمسية ضيافة بدوية تقليدية وشاي الحطب في مخيم الواحة",
+        "Accompanied by an archaeologist specialising in Palmyra and the Roman East",
+        "A secure, fully coordinated route with the official authorities",
+        "A traditional Bedouin evening with wood-fire tea at the oasis camp",
       ],
       specs: [
         { icon: "schedule", label: "Duration", value: "2 Days / 1 Night", note: "Heritage Lodge" },
@@ -363,7 +354,6 @@ const seedTours: SeedTour[] = [
   {
     slug: "krak-des-chevaliers-coastal-heritage",
     title: "Krak des Chevaliers & Coastal Heritage",
-    titleAr: "قلعة الحصن وتراث الساحل السوري",
     category: "forts",
     region: "coast",
     image: img("29"),
@@ -373,21 +363,20 @@ const seedTours: SeedTour[] = [
       "Ascend the concentric stone curtains described by T.E. Lawrence as the finest castle in christendom, traverse the fertile Christian Valley of Marmarita, and trace Phoenician seawalls into Templar Tortosa.",
     details: {
       badge: "UNESCO World Heritage",
-      badgeAr: "قلاع الساحل",
       subtitle: "Crusader Citadels, Phoenician Seawalls & The Fragrant Valley of the Christians",
       durationLabel: "2 Days / 1 Night",
       groupLabel: "Private VIP / Curated Group",
       pace: "Moderate",
       departureIcon: "event_available",
-      departure: "انطلاق عند الطلب من دمشق أو حمص",
-      departureTag: "مرونة كاملة",
+      departure: "On-demand departures from Damascus or Homs",
+      departureTag: "Fully flexible",
       rating: "4.96",
       reviews: "38",
       route: "Ministry Route #319",
       checklist: [
-        "جولة داخل قلعة الحصن مع مرشدة أثرية مرخصة",
-        "إقامة في وادي النصارى وعشاء مطل على القلعة المضاءة",
-        "زيارة كاتدرائية طرطوس وغداء بحري على الميناء القديم",
+        "A tour inside Krak des Chevaliers with a licensed archaeologist guide",
+        "Overnight in the Valley of the Christians with dinner facing the floodlit castle",
+        "Tartus Cathedral and a seafood lunch at the old harbour",
       ],
       specs: [
         { icon: "schedule", label: "Duration", value: "2 Days / 1N", note: "Boutique stay in Al-Wadi" },
@@ -452,30 +441,28 @@ const seedTours: SeedTour[] = [
   {
     slug: "syrian-culinary-heritage",
     title: "Syrian Culinary Heritage & Silk Road Tasting",
-    titleAr: "تراث المطبخ السوري ومذاقات طريق الحرير",
     category: "gastronomy",
     region: "aleppo",
     image: img("17"),
     price: 890,
     durationDays: 5,
     summary:
-      "انغمس في أسرار توابل حلب الشهيرة وحلويات دمشق التراثية، مع ورش طهي حية يقودها أمهر طهاة العائلات العريقة في بيوت شامية وحلبية أصيلة.",
+      "Uncover the famous spices of Aleppo and the heritage sweets of Damascus, with live cooking workshops led by the finest family cooks in authentic Damascene and Aleppine homes.",
     details: {
       badge: "Silk Road Flavors",
-      badgeAr: "رحلة شهرية منتظمة",
       subtitle: "Spices of Aleppo, Sweets of Damascus & Family Kitchens",
       durationLabel: "5 Days / 4 Nights",
       groupLabel: "Max 8 Guests",
       pace: "Leisurely",
       departureIcon: "dinner_dining",
-      departure: "انطلاق ثابت: الأربعاء الثاني من كل شهر",
-      departureTag: "مقاعد محدودة",
+      departure: "Fixed departure: 2nd Wednesday of every month",
+      departureTag: "Limited seats",
       rating: "4.97",
       reviews: "31",
       checklist: [
-        "جولة تذوق حسية في سوق البزورية مع شيوخ العطارة والتوابل",
-        "ورشة حصرية لتحضير الكباب الحلبي بالكرز والمحمرة الأصيلة",
-        "عرض دَق البوظة الشامية بالفستق الحلبي وطرق صناعتها التاريخية",
+        "A tasting tour of Souq al-Bzouriyeh with veteran spice merchants",
+        "An exclusive workshop on Aleppo cherry kebab and authentic muhammara",
+        "Watch Damascene ice cream pounded and rolled in Aleppo pistachios",
       ],
       overviewEyebrow: "Curatorial Perspective",
       overviewTitle: "A Journey Through the World’s Oldest Continuous Kitchens",
@@ -496,31 +483,29 @@ const seedTours: SeedTour[] = [
   {
     slug: "palmyra-sunrise-desert-nomads",
     title: "Palmyra Sunrise & Desert Nomads",
-    titleAr: "شروق تدمر وعراقة بادية الشام",
     category: "desert",
     region: "desert",
     image: img("16"),
     price: 620,
     durationDays: 3,
     summary:
-      "رحلة أصيلة إلى حاضرة زنوبيا، مشاهدة شروق الشمس فوق وادي القبور، واحة تدمر الغناء، ولقاء أهل البادية تحت سماء الصحراء المرصعة بالنجوم.",
+      "An authentic journey to Zenobia’s capital: sunrise over the Valley of the Tombs, Palmyra’s green oasis and an evening with the desert people under a star-filled sky.",
     details: {
       badge: "Queen Zenobia",
-      badgeAr: "رحلة منتظمة مجدولة",
       subtitle: "Sunrise over the Valley of the Tombs & a Night with the Bedouin",
       durationLabel: "3 Days / 2 Nights",
       groupIcon: "shield",
-      groupLabel: "حراسة ومرافقة مؤمنة",
+      groupLabel: "Secure escort & protection",
       pace: "Moderate",
       departureIcon: "schedule",
-      departure: "انطلاق ثابت: منتصف ونهاية كل شهر",
-      departureTag: "تنسيق أمني مسبق",
+      departure: "Fixed departures: mid and end of every month",
+      departureTag: "Security pre-coordinated",
       rating: "4.95",
       reviews: "27",
       checklist: [
-        "مرافقة مدير أثري متخصص في تاريخ تدمر والشرق الروماني",
-        "مسار عبور آمن ومؤمن بتنسيق كامل مع غرف العمليات الرسمية",
-        "أمسية ضيافة بدوية تقليدية وشاي الحطب في مخيم الواحة",
+        "Accompanied by an archaeologist specialising in Palmyra and the Roman East",
+        "A secure, fully coordinated route with the official authorities",
+        "A traditional Bedouin evening with wood-fire tea at the oasis camp",
       ],
       overviewEyebrow: "Curatorial Perspective",
       overviewTitle: "Dawn in Zenobia’s Desert Capital",
@@ -541,7 +526,6 @@ const seedPosts = [
   {
     slug: "palmyra-revisited",
     title: "Palmyra Revisited: Decoding the Architectural Mastery of Queen Zenobia's Desert Oasis",
-    kickerAr: "قراءة مميزة",
     category: "Archaeology & Antiquities",
     excerpt:
       "A deep dive by our archaeological team into the monumental colonnades, funerary towers, and trade crossroads that shaped Tadmur into the ancient world's most glamorous merchant empire.",
@@ -594,7 +578,6 @@ Following the assassination of her husband Odaenathus in 267 CE, Queen Septimia 
   {
     slug: "secret-courtyards-of-damascus",
     title: "The Secret Courtyards of Damascus: A Guide to Bayt Nizam, Bayt Sibai, and Traditional Living Architecture",
-    kickerAr: "دمشق القديمة",
     category: "Living Old Quarters",
     excerpt:
       "Step past the modest external clay walls into hidden paradise courtyards fragrant with Seville orange trees, basalt ablaq stone patterns, and centuries of residential urban grace.",
@@ -616,7 +599,6 @@ These two 18th-century mansions show the house at its most refined: painted wood
   {
     slug: "secrets-of-the-aleppo-kitchen",
     title: "The Secrets of the Aleppo Kitchen: How 12 Spices and Sour Cherries Define a Culinary Heritage",
-    kickerAr: "المطبخ الحلبي العريق",
     category: "Syrian Culinary Traditions",
     excerpt:
       "Explore the gastronomy of Aleppo, where Silk Road spice trades converged with Levant fruit orchards to produce world-renowned sour cherry kebabs and intricate kibbeh varieties.",
@@ -638,7 +620,6 @@ Aleppine cooks claim more than sixty varieties of kibbeh: fried, baked, raw, stu
   {
     slug: "navigating-krak-des-chevaliers",
     title: "Navigating Krak des Chevaliers: Tactical Genius and Crusader Engineering on the Syrian Coastal Ridge",
-    kickerAr: "قلعة الحصن",
     category: "Archaeology & Antiquities",
     excerpt:
       "An architectural breakdown of the world's most formidable concentric castle, examining subterranean granaries, water aqueducts, and concentric defense layers praised by T.E. Lawrence.",
@@ -664,7 +645,6 @@ The castle is concentric: an outer wall with round towers, a moat fed by an aque
   {
     slug: "first-time-in-syria",
     title: "First Time in Syria: Clearances, Visas, Currency & Practical Etiquette for 2025/2026",
-    kickerAr: "إرشادات السفر العملي",
     category: "Traveler Field Guides & Advice",
     excerpt:
       "Clear, updated guidance on obtaining the Syrian security clearance, border crossing from Beirut or Amman, banking practicalities, and local guest customs.",
@@ -692,7 +672,6 @@ International cards do not work in Syria. Bring clean US dollar or euro notes; y
   {
     slug: "maaloula-living-echo-of-aramaic",
     title: "Maaloula and the Living Echo of Aramaic: Walking the Gorge with Native Speakers",
-    kickerAr: "معلولا واللغة الآرامية",
     category: "Living Old Quarters",
     excerpt:
       "How a mountain enclave in the Qalamoun range safeguards Western Neo-Aramaic, the language spoken by Jesus, preserved through liturgy, oral tradition, and rugged geography.",
@@ -710,7 +689,6 @@ A narrow cleft in the rock leads to the convent of Saint Thecla. Walking it with
   {
     slug: "damascene-brocade-and-mosaic-guilds",
     title: "The Damascene Brocade and Mosaic Guilds: Inside the Workshops Preserving Silk and Wood Inlay",
-    kickerAr: "الحرف اليدوية الدمشقية",
     category: "Artisans & Silk Road Crafts",
     excerpt:
       "Step inside the family-run atelier producing genuine Syrian brocade and see master marquetry artisans craft mother-of-pearl masterpieces.",
@@ -728,15 +706,22 @@ In the workshops near Bab Sharqi, artisans cut thousands of tiny pieces of walnu
 ];
 
 export async function seedWebsite() {
-  await db.insert(site).values({ id: 1, data: defaultSiteContent });
+  // Row 1 = English website text, row 2 = Arabic.
+  await db.insert(site).values([
+    { id: 1, data: defaultSiteContent },
+    { id: 2, data: defaultSiteContentAr },
+  ]);
 
   const tourRows = await db
     .insert(tours)
     .values(
-      seedTours.map((t, i) => ({
+      seedTours.map((t, i) => {
+        const ar = toursAr[t.slug];
+        return {
         slug: t.slug,
         title: t.title,
-        titleAr: t.titleAr,
+        titleAr: ar?.title ?? "",
+        ar: ar ? { title: ar.title, summary: ar.summary, details: mergeArDetails(t.details, ar.details) } : {},
         category: t.category,
         region: t.region,
         image: t.image,
@@ -746,11 +731,12 @@ export async function seedWebsite() {
         details: t.details,
         featured: t.featured ?? false,
         sortOrder: i,
-      })),
+        };
+      }),
     )
     .returning({ id: tours.id, title: tours.title });
 
-  await db.insert(posts).values(seedPosts);
+  await db.insert(posts).values(seedPosts.map((p) => ({ ...p, ar: postsAr[p.slug] ?? {} })));
 
   const now = Date.now();
   const ago = (days: number) => new Date(now - days * 86_400_000).toISOString().slice(0, 19).replace("T", " ");
@@ -761,8 +747,8 @@ export async function seedWebsite() {
   ]);
 
   await db.insert(messages).values([
-    { kind: "partnership", name: "Levant Heritage Travel", email: "hello@example.com", phone: "+961 3 123 456", location: "Beirut, Lebanon", category: "Tourism Company or Inbound/Outbound Travel Agency | شركة أو وكالة سياحية", body: "We would like to send small groups from Beirut each month and co-operate on visa handling.", createdAt: ago(2) },
-    { kind: "partnership", name: "Bayt Al-Yasmin Guesthouse", email: "stay@example.com", phone: "+963 944 000 111", location: "Damascus, Syria", category: "Heritage Hotel, Boutique Stay or Dining | ضيافة تراثية ومطاعم", body: "Our restored courtyard house has 8 rooms. We would love to host your guests.", read: true, createdAt: ago(6) },
+    { kind: "partnership", name: "Levant Heritage Travel", email: "hello@example.com", phone: "+961 3 123 456", location: "Beirut, Lebanon", category: "Tourism Company or Inbound/Outbound Travel Agency", body: "We would like to send small groups from Beirut each month and co-operate on visa handling.", createdAt: ago(2) },
+    { kind: "partnership", name: "Bayt Al-Yasmin Guesthouse", email: "stay@example.com", phone: "+963 944 000 111", location: "Damascus, Syria", category: "Heritage Hotel, Boutique Stay or Dining", body: "Our restored courtyard house has 8 rooms. We would love to host your guests.", read: true, createdAt: ago(6) },
   ]);
 
   await db.insert(subscribers).values([{ email: "reader@example.com" }, { email: "historian@example.com" }]);
@@ -774,6 +760,7 @@ export async function seedWebsite() {
       subtitle: "Clear, fair terms for every expedition",
       body: "## Reservations\n\nA booking request does not require payment. We confirm availability and clearances first.\n\n## Payments\n\nDeposits are settled once your security clearance is approved.\n\n## Cancellations\n\n- Free cancellation up to 30 days before arrival\n- 50% refund between 30 and 14 days\n- No refund within 14 days",
       showInMenu: false,
+      ar: termsAr,
     },
   ]);
 

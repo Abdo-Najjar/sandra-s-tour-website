@@ -3,7 +3,8 @@ import { connection } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { and, asc, count, desc, eq, gte, lt, ne, sql, sum } from "drizzle-orm";
 import { bookings, db, messages, orders, pages, posts, products, settings, site, subscribers, tours, users, type BookingStatus, type MessageKind, type OrderStatus } from "@/db";
-import { withDefaults } from "@/lib/site/content";
+import { siteRowId, withDefaults } from "@/lib/site/content";
+import type { Lang } from "@/lib/site/i18n";
 import { tourDetails } from "@/lib/site/tour";
 
 // Every query checks the session first (the Data Access Layer pattern).
@@ -171,10 +172,10 @@ export async function getProducts() {
 
 // ---------- Website (dashboard side, always fresh) ----------
 
-export async function getSiteContent() {
+export async function getSiteContent(lang: Lang = "en") {
   await guard();
-  const row = await db.query.site.findFirst({ where: eq(site.id, 1) });
-  return withDefaults(row?.data);
+  const row = await db.query.site.findFirst({ where: eq(site.id, siteRowId(lang)) });
+  return withDefaults(row?.data, lang);
 }
 
 export async function getAdminTours() {

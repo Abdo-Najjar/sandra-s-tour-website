@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Fragment } from "react";
-import { Ar, Icon, Paragraphs, Stars, formatPrice } from "@/components/site/bits";
+import { Icon, Paragraphs, Stars, formatPrice } from "@/components/site/bits";
 import { MiniTourCard } from "@/components/site/cards";
 import { NewsletterForm, TourBookingForm } from "@/components/site/forms";
+import { Link } from "@/components/site/lang";
 import { getPublishedSlugs, getSite, getTour, getTours } from "@/lib/site/data";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl, whatsappLink } from "@/lib/site/shape";
 
 export async function generateStaticParams() {
@@ -14,8 +15,9 @@ export async function generateStaticParams() {
   return (slugs.length ? slugs : ["__none__"]).map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: PageProps<"/tours/[slug]">): Promise<Metadata> {
-  const tour = await getTour((await params).slug);
+export async function generateMetadata({ params }: PageProps<"/[lang]/tours/[slug]">): Promise<Metadata> {
+  const { lang } = await getUi();
+  const tour = await getTour((await params).slug, lang);
   if (!tour) return {};
   return {
     title: tour.title,
@@ -39,7 +41,7 @@ function ItineraryBody({ body }: { body: string }) {
         .map((line, i) => {
           const m = line.match(/^([\d:–\- ]{2,15}?)\s+—\s+(.*)$/);
           return (
-            <p key={i} dir="auto">
+            <p key={i}>
               {m ? (
                 <>
                   <strong className="text-on-surface">{m[1]}</strong> — {m[2]}
@@ -54,15 +56,16 @@ function ItineraryBody({ body }: { body: string }) {
   );
 }
 
-export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
+export default async function TourPage({ params }: PageProps<"/[lang]/tours/[slug]">) {
   const { slug } = await params;
-  const [tour, site, allTours] = await Promise.all([getTour(slug), getSite(), getTours()]);
+  const { lang, t } = await getUi();
+  const [tour, site, allTours] = await Promise.all([getTour(slug, lang), getSite(lang), getTours(lang)]);
   if (!tour) notFound();
 
   const d = tour.details;
   const detail = site.tours.detail;
-  const related = allTours.filter((t) => t.id !== tour.id).slice(0, 3);
-  const whatsapp = whatsappLink(site.contact.whatsapp, `Hello Sandra, I am inquiring about the ${tour.title}`);
+  const related = allTours.filter((x) => x.id !== tour.id).slice(0, 3);
+  const whatsapp = whatsappLink(site.contact.whatsapp, t.tourWhatsapp(tour.title));
   const [main, ...rest] = d.gallery.length ? d.gallery : [{ image: tour.image, kicker: "", title: tour.title, text: "" }];
   const guide = site.about.founder;
 
@@ -73,11 +76,11 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
         <div className="mx-auto flex max-w-[1360px] flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-label-sm tracking-wider text-on-surface-variant uppercase">
             <Link href="/" className="hover:text-primary">
-              Home
+              {t.home}
             </Link>
             <Icon name="chevron_right" className="text-[14px] text-outline" />
             <Link href="/tours" className="hover:text-primary">
-              Expeditions
+              {t.tours}
             </Link>
             <Icon name="chevron_right" className="text-[14px] text-outline" />
             <span className="font-semibold text-secondary">{tour.title}</span>
@@ -90,7 +93,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
               </span>
             )}
             {d.groupLabel && (
-              <span className="hidden items-center gap-1.5 rounded bg-surface px-2.5 py-1 shadow-sm sm:inline-flex" dir="auto">
+              <span className="hidden items-center gap-1.5 rounded bg-surface px-2.5 py-1 shadow-sm sm:inline-flex">
                 <Icon name="groups" className="text-[16px] text-secondary" />
                 {d.groupLabel}
               </span>
@@ -99,7 +102,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
               <span className="inline-flex items-center gap-1 font-semibold text-secondary">
                 <Icon name="star" fill className="text-[16px]" />
                 <span className="text-on-surface">{d.rating}</span>
-                {d.reviews && <span className="font-normal text-on-surface-variant">({d.reviews} Verified Reviews)</span>}
+                {d.reviews && <span className="font-normal text-on-surface-variant">{t.verifiedReviews(d.reviews)}</span>}
               </span>
             )}
           </div>
@@ -120,14 +123,13 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                 </div>
               )}
               <h1 className="font-display text-headline-xl-mobile tracking-tight text-primary md:text-[48px] md:leading-[58px]">{tour.title}</h1>
-              {tour.titleAr && <Ar as="p" className="text-headline-sm font-bold text-heritage-olive">{tour.titleAr}</Ar>}
               {d.subtitle && <p className="font-display text-headline-md text-secondary italic">{d.subtitle}</p>}
             </div>
             <a
               href="#booking-card"
               className="flex shrink-0 items-center gap-2 self-start rounded bg-primary px-space-md py-3 text-label-md tracking-wider text-white uppercase shadow-md hover:bg-primary-light lg:self-auto"
             >
-              Book Expedition <span className="font-semibold text-secondary-fixed">• {formatPrice(tour.price)}/pp</span>
+              {t.bookTour} <span className="font-semibold text-secondary-fixed">• {formatPrice(tour.price)}{t.pp}</span>
             </a>
           </div>
           {d.specs.length > 0 && (
@@ -154,7 +156,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={safeUrl(main.image, safeUrl(tour.image, ""))} alt={main.title} className="size-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
-            <figcaption className="absolute right-4 bottom-4 left-4 text-white">
+            <figcaption className="absolute inset-x-4 bottom-4 text-white">
               {main.kicker && <span className="mb-1 inline-block rounded bg-secondary px-2 py-0.5 text-label-sm tracking-widest uppercase">{main.kicker}</span>}
               <h2 className="font-display text-headline-md text-white">{main.title}</h2>
               {main.text && <p className="line-clamp-1 text-body-sm opacity-90">{main.text}</p>}
@@ -167,7 +169,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={safeUrl(g.image, "")} alt={g.title} loading="lazy" className="size-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/75 via-transparent to-transparent" />
-                  <figcaption className="absolute right-3 bottom-3 left-3 text-white">
+                  <figcaption className="absolute inset-x-3 bottom-3 text-white">
                     {g.kicker && <span className="block text-label-sm text-secondary-fixed uppercase">{g.kicker}</span>}
                     <p className="line-clamp-1 font-display text-body-lg">{g.title}</p>
                   </figcaption>
@@ -195,7 +197,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                   <Paragraphs text={d.overview || tour.summary} />
                 </div>
                 {d.quote && (
-                  <blockquote className="border-l-4 border-antique-gold bg-surface-container p-space-lg font-display text-headline-sm text-primary italic">
+                  <blockquote className="border-s-4 border-antique-gold bg-surface-container p-space-lg font-display text-headline-sm text-primary italic">
                     «{d.quote}»
                     {d.quoteBy && <footer className="mt-2 font-sans text-label-md text-on-surface-variant not-italic">— {d.quoteBy}</footer>}
                   </blockquote>
@@ -206,8 +208,8 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             {d.highlights.length > 0 && (
               <section className="space-y-space-md">
                 <div>
-                  <span className={sectionLabel}>Expedition Monograph</span>
-                  <h2 className={sectionTitle}>Defining Highlights</h2>
+                  <span className={sectionLabel}>{t.highlightsEyebrow}</span>
+                  <h2 className={sectionTitle}>{t.highlightsTitle}</h2>
                 </div>
                 <div className="grid grid-cols-1 gap-space-md sm:grid-cols-2">
                   {d.highlights.map((h) => (
@@ -216,9 +218,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                         <Icon name={h.icon || "star"} className="text-[22px]" />
                       </span>
                       <h3 className="font-display text-headline-md text-primary">{h.title}</h3>
-                      <p className="text-body-md text-on-surface-variant" dir="auto">
-                        {h.text}
-                      </p>
+                      <p className="text-body-md text-on-surface-variant">{h.text}</p>
                     </div>
                   ))}
                 </div>
@@ -229,8 +229,8 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
               <section className="space-y-space-md">
                 <div className="flex items-end justify-between">
                   <div>
-                    <span className={sectionLabel}>Chronicle of Traversals</span>
-                    <h2 className={sectionTitle}>Day-by-Day Expedition Itinerary</h2>
+                    <span className={sectionLabel}>{t.itineraryEyebrow}</span>
+                    <h2 className={sectionTitle}>{t.itineraryTitle}</h2>
                   </div>
                   {d.durationLabel && <span className="hidden text-label-md text-on-surface-variant sm:inline">{d.durationLabel}</span>}
                 </div>
@@ -262,13 +262,13 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             {(d.includes.length > 0 || d.excludes.length > 0) && (
               <section className="space-y-space-md">
                 <div>
-                  <span className={sectionLabel}>Transparency &amp; Protocol</span>
-                  <h2 className={sectionTitle}>Expedition Inclusions &amp; Provisions</h2>
+                  <span className={sectionLabel}>{t.inclusionsEyebrow}</span>
+                  <h2 className={sectionTitle}>{t.inclusionsTitle}</h2>
                 </div>
                 <div className="grid grid-cols-1 gap-space-md md:grid-cols-2">
                   {[
-                    { title: "Fully Included", icon: "check_circle", item: "check", tone: "text-secondary", list: d.includes },
-                    { title: "Not Included", icon: "cancel", item: "close", tone: "text-outline", list: d.excludes },
+                    { title: t.included, icon: "check_circle", item: "check", tone: "text-secondary", list: d.includes },
+                    { title: t.notIncluded, icon: "cancel", item: "close", tone: "text-outline", list: d.excludes },
                   ]
                     .filter((g) => g.list.length)
                     .map((g) => (
@@ -279,7 +279,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                         </h3>
                         <ul className="space-y-2.5 text-body-md text-on-surface-variant">
                           {g.list.map((x) => (
-                            <li key={x} className="flex items-start gap-2" dir="auto">
+                            <li key={x} className="flex items-start gap-2">
                               <Icon name={g.item} className={`mt-0.5 shrink-0 text-[20px] ${g.tone}`} />
                               <span>{x}</span>
                             </li>
@@ -298,7 +298,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={safeUrl(site.guide.profile.image, "")} alt={site.guide.profile.name} loading="lazy" className="size-full object-cover" />
                 </div>
-                <div className="space-y-space-xs text-center md:text-left">
+                <div className="space-y-space-xs text-center md:text-start">
                   <div className="inline-flex items-center gap-2 rounded bg-secondary/10 px-2.5 py-0.5 text-label-sm font-semibold tracking-wider text-secondary uppercase">
                     <Icon name="school" className="text-[14px]" />
                     {guide.badge}
@@ -307,7 +307,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                   <p className="text-body-md font-medium text-secondary">{site.guide.profile.credentials}</p>
                   <p className="text-body-md text-on-surface-variant">{guide.paragraphs[0]?.text}</p>
                   <Link href="/guide" className="inline-flex items-center gap-1 pt-1 text-label-md font-semibold text-primary underline underline-offset-4">
-                    Meet your guide <Icon name="arrow_forward" className="text-[16px]" />
+                    {t.meetGuide} <Icon name="arrow_forward" className="text-[16px]" />
                   </Link>
                 </div>
               </div>
@@ -316,8 +316,8 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             {d.logistics.length > 0 && (
               <section className="space-y-space-md">
                 <div>
-                  <span className={sectionLabel}>Field Protocol</span>
-                  <h2 className={sectionTitle}>Practical Logistics &amp; Travel Preparation</h2>
+                  <span className={sectionLabel}>{t.logisticsEyebrow}</span>
+                  <h2 className={sectionTitle}>{t.logisticsTitle}</h2>
                 </div>
                 <div className="grid grid-cols-1 gap-space-md sm:grid-cols-3">
                   {d.logistics.map((l) => (
@@ -334,20 +334,20 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             {d.testimonials.length > 0 && (
               <section className="space-y-space-md">
                 <div>
-                  <span className={sectionLabel}>Voices of Travelers</span>
-                  <h2 className={sectionTitle}>Reflections from the Road</h2>
+                  <span className={sectionLabel}>{t.testimonialsEyebrow}</span>
+                  <h2 className={sectionTitle}>{t.testimonialsTitle}</h2>
                 </div>
                 <div className="grid grid-cols-1 gap-space-md md:grid-cols-2">
-                  {d.testimonials.map((t) => (
-                    <figure key={t.name} className={`${panel} space-y-3 p-space-lg`}>
+                  {d.testimonials.map((r) => (
+                    <figure key={r.name} className={`${panel} space-y-3 p-space-lg`}>
                       <Stars />
-                      <blockquote className="text-body-md text-on-surface italic">&ldquo;{t.quote}&rdquo;</blockquote>
+                      <blockquote className="text-body-md text-on-surface italic">&ldquo;{r.quote}&rdquo;</blockquote>
                       <figcaption className="flex items-center justify-between pt-2 text-label-sm">
                         <div>
-                          <span className="block font-semibold text-primary">{t.name}</span>
-                          <span className="text-on-surface-variant">{t.role}</span>
+                          <span className="block font-semibold text-primary">{r.name}</span>
+                          <span className="text-on-surface-variant">{r.role}</span>
                         </div>
-                        <span className="font-medium text-secondary">{t.date}</span>
+                        <span className="font-medium text-secondary">{r.date}</span>
                       </figcaption>
                     </figure>
                   ))}
@@ -358,8 +358,8 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             {d.faq.length > 0 && (
               <section className="space-y-space-md">
                 <div>
-                  <span className={sectionLabel}>Essential Clarifications</span>
-                  <h2 className={sectionTitle}>Frequently Asked Questions</h2>
+                  <span className={sectionLabel}>{t.faqEyebrow}</span>
+                  <h2 className={sectionTitle}>{t.faqTitle}</h2>
                 </div>
                 <div className="space-y-3">
                   {d.faq.map((f, i) => (
@@ -381,11 +381,11 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             <div className="space-y-space-md rounded-2xl bg-surface-container-lowest p-space-lg shadow-xl">
               <div className="flex items-baseline justify-between">
                 <div>
-                  <span className="block text-label-sm tracking-wider text-outline uppercase">Expedition Tariff</span>
+                  <span className="block text-label-sm tracking-wider text-outline uppercase">{t.tariff}</span>
                   <span className="font-display text-headline-lg font-bold text-primary">{formatPrice(tour.price)}</span>
-                  <span className="text-body-sm text-on-surface-variant"> / person</span>
+                  <span className="text-body-sm text-on-surface-variant"> {t.perPerson}</span>
                 </div>
-                <span className="rounded bg-secondary/10 px-2.5 py-1 text-label-sm font-semibold text-secondary uppercase">All-Inclusive</span>
+                <span className="rounded bg-secondary/10 px-2.5 py-1 text-label-sm font-semibold text-secondary uppercase">{t.allInclusive}</span>
               </div>
               {detail.bookingNote && <p className="text-body-sm text-on-surface-variant">{detail.bookingNote}</p>}
               <TourBookingForm tourId={tour.id} whatsappHref={whatsapp} />
@@ -402,7 +402,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                   <span className="block text-label-sm font-semibold tracking-wider text-secondary uppercase">{detail.customTitle}</span>
                   <p className="text-body-sm text-on-surface-variant">{detail.customText}</p>
                   <Link href="/contact#booking" className="inline-block pt-1 text-label-md font-semibold text-primary underline underline-offset-4">
-                    Request Tailored Levant Itinerary →
+                    {t.requestTailored}
                   </Link>
                 </div>
               )}
@@ -410,7 +410,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             {d.mapImage && (
               <div className={`${panel} space-y-2 p-space-md`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-label-sm font-semibold tracking-wider text-outline uppercase">Traversed Route</span>
+                  <span className="text-label-sm font-semibold tracking-wider text-outline uppercase">{t.route}</span>
                   <span className="text-label-sm text-secondary">{d.mapDistance}</span>
                 </div>
                 <div
@@ -439,13 +439,13 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
                 <h2 className={sectionTitle}>{detail.relatedTitle}</h2>
               </div>
               <Link href="/tours" className="flex items-center gap-1 text-label-md font-semibold tracking-wider text-secondary uppercase">
-                View All {allTours.length} Curated Circuits <Icon name="arrow_forward" className="text-[16px]" />
+                {t.viewAllTours(allTours.length)} <Icon name="arrow_forward" className="text-[16px]" />
               </Link>
             </div>
             <div className="grid grid-cols-1 gap-space-md md:grid-cols-3">
-              {related.map((t) => (
-                <Fragment key={t.id}>
-                  <MiniTourCard tour={t} />
+              {related.map((r) => (
+                <Fragment key={r.id}>
+                  <MiniTourCard tour={r} />
                 </Fragment>
               ))}
             </div>
@@ -461,7 +461,7 @@ export default async function TourPage({ params }: PageProps<"/tours/[slug]">) {
             <p className="text-body-md text-on-primary-container">{detail.newsletterText}</p>
           </div>
           <div className="w-full lg:w-[420px]">
-            <NewsletterForm placeholder="Enter your email address" button="Join Dispatch" variant="band" />
+            <NewsletterForm placeholder={t.newsletterPlaceholder} button={t.joinNewsletter} variant="band" />
           </div>
         </div>
       </section>

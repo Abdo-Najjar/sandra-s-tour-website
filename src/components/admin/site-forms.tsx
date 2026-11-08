@@ -2,6 +2,7 @@
 
 import { useActionState, useOptimistic, useRef, useState, useTransition } from "react";
 import { Check, Copy, Eye, Loader2, Mail, MailOpen, RotateCcw, Save, Star } from "lucide-react";
+import { DatePicker } from "@/components/date-picker";
 import { DeleteButton } from "@/components/row-actions";
 import type { ActionState } from "@/lib/actions";
 import {
@@ -22,7 +23,9 @@ import {
   toggleTour,
 } from "@/lib/site/admin-actions";
 import type { SiteContent, SiteSection } from "@/lib/site/content";
-import { emptyTourDetails, tourDetailsTemplate, type TourDetails } from "@/lib/site/tour";
+import { localHref, type Lang } from "@/lib/site/i18n";
+import { conform } from "@/lib/site/shape";
+import { emptyTourDetails, pageArTemplate, postArTemplate, tourDetailsTemplate, type TourDetails } from "@/lib/site/tour";
 import type { BookingStatus, Page, Post, Tour } from "@/db/schema";
 import { bookingStatusLabels } from "@/lib/site/labels";
 import { ContentEditor, ImageInput, inputCls, uploadImage } from "./content-editor";
@@ -127,6 +130,19 @@ function ImageField({ name, initial }: { name: string; initial: string }) {
 
 const panel = "grid gap-4 rounded-xl border border-border bg-surface p-4 sm:p-5";
 
+// Box for the Arabic version of a tour, article or page.
+function ArabicPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className={panel}>
+      <div>
+        <h2 className="font-bold">النسخة العربية</h2>
+        <p className="text-sm text-muted">تظهر على الموقع العربي (/ar). أي حقل تتركه فارغاً يظهر بالإنجليزي.</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 // ---------- Website sections ----------
 
 export function SectionForm<S extends SiteSection>({
@@ -134,13 +150,15 @@ export function SectionForm<S extends SiteSection>({
   template,
   initial,
   preview,
+  lang,
 }: {
   section: S;
   template: SiteContent[S];
   initial: SiteContent[S];
   preview: string;
+  lang: Lang;
 }) {
-  const { state, pending, dirty, formProps } = useSave(saveSiteSection.bind(null, section));
+  const { state, pending, dirty, formProps } = useSave(saveSiteSection.bind(null, section, lang));
   const [resetting, startReset] = useTransition();
 
   return (
@@ -151,14 +169,14 @@ export function SectionForm<S extends SiteSection>({
         state={state}
         pending={pending}
         dirty={dirty}
-        preview={preview}
+        preview={localHref(preview, lang)}
         extra={
           <button
             type="button"
             disabled={resetting}
             onClick={() => {
               if (!confirm("إرجاع هذا القسم إلى المحتوى الأصلي؟ ستفقد تعديلاتك عليه.")) return;
-              startReset(() => resetSiteSection(section));
+              startReset(() => resetSiteSection(section, lang));
             }}
             className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted hover:bg-surface-2"
           >
@@ -178,11 +196,13 @@ export function TourForm({
   tour,
   categories,
   regions,
+  ar,
   saved,
 }: {
   tour: (Omit<Tour, "details"> & { details: TourDetails }) | null;
   categories: Option[];
   regions: Option[];
+  ar: { title: string; summary: string; details: TourDetails };
   saved?: boolean;
 }) {
   const { state, pending, dirty, formProps } = useSave(saveTour.bind(null, tour?.id ?? null));
@@ -195,9 +215,6 @@ export function TourForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="اسم الجولة (إنجليزي)">
             <input name="title" required dir="auto" defaultValue={t?.title} className={inputCls} />
-          </Field>
-          <Field label="اسم الجولة (عربي)">
-            <input name="titleAr" dir="auto" defaultValue={t?.titleAr} className={inputCls} />
           </Field>
           <Field label="الرابط (slug)" hint="يُترك فارغاً ليُنشأ من الاسم">
             <input name="slug" dir="ltr" defaultValue={t?.slug} className={inputCls} />
@@ -230,7 +247,7 @@ export function TourForm({
           <Field label="الصورة الرئيسية" className="sm:col-span-2">
             <ImageField name="image" initial={t?.image ?? ""} />
           </Field>
-          <Field label="الملخص" className="sm:col-span-2">
+          <Field label="الملخص (إنجليزي)" className="sm:col-span-2">
             <textarea name="summary" rows={3} dir="auto" defaultValue={t?.summary} className={inputCls} />
           </Field>
         </div>
@@ -245,6 +262,19 @@ export function TourForm({
         <p className="text-sm text-muted">كل ما يظهر في صفحة الجولة: المواصفات، الصور، البرنامج اليومي، ما يشمله السعر، الأسئلة وغيرها.</p>
         <ContentEditor name="details" template={tourDetailsTemplate} initial={t?.details ?? emptyTourDetails} />
       </div>
+
+      <ArabicPanel>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="اسم الجولة (عربي)">
+            <input name="arTitle" dir="rtl" defaultValue={ar.title} className={inputCls} />
+          </Field>
+          <Field label="الملخص (عربي)" className="sm:col-span-2">
+            <textarea name="arSummary" rows={3} dir="rtl" defaultValue={ar.summary} className={inputCls} />
+          </Field>
+        </div>
+        <p className="text-sm text-muted">تفاصيل الصفحة بالعربي. القوائم (البرنامج اليومي، الأسئلة...) إن أضفتها بالعربي تحل محل الإنجليزية بالكامل.</p>
+        <ContentEditor name="arDetails" template={tourDetailsTemplate} initial={ar.details} />
+      </ArabicPanel>
 
       <SaveBar state={state} pending={pending} dirty={dirty} saved={saved} preview={t ? `/tours/${t.slug}` : undefined} />
     </form>
@@ -362,12 +392,13 @@ function BodyEditor({ name, initial }: { name: string; initial: string }) {
 export function PostForm({ post, saved }: { post: Post | null; saved?: boolean }) {
   const { state, pending, dirty, formProps } = useSave(savePost.bind(null, post?.id ?? null));
   const p = post;
+  const ar = conform(p?.ar, postArTemplate);
 
   return (
     <form {...formProps} className="grid gap-4">
       <div className={panel}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="العنوان" className="sm:col-span-2">
+          <Field label="العنوان (إنجليزي)" className="sm:col-span-2">
             <input name="title" required dir="auto" defaultValue={p?.title} className={inputCls} />
           </Field>
           <Field label="الرابط (slug)" hint="يُترك فارغاً ليُنشأ من العنوان">
@@ -376,14 +407,19 @@ export function PostForm({ post, saved }: { post: Post | null; saved?: boolean }
           <Field label="التصنيف" hint="مثل: History أو Food">
             <input name="category" dir="auto" defaultValue={p?.category} className={inputCls} />
           </Field>
-          <Field label="عنوان صغير بالعربي">
-            <input name="kickerAr" dir="auto" defaultValue={p?.kickerAr} className={inputCls} />
-          </Field>
           <Field label="الكاتب">
             <input name="author" dir="auto" defaultValue={p?.author} className={inputCls} />
           </Field>
           <Field label="تاريخ النشر" hint="فارغ = اليوم">
-            <input name="publishedAt" type="date" dir="ltr" defaultValue={p?.publishedAt ?? ""} className={inputCls} />
+            <DatePicker
+              name="publishedAt"
+              theme="admin"
+              locale="ar-SY-u-nu-latn"
+              weekStart={6}
+              defaultValue={p?.publishedAt ?? ""}
+              labels={{ placeholder: "اختر التاريخ", today: "اليوم", clear: "مسح", prev: "الشهر السابق", next: "الشهر التالي" }}
+              className={inputCls}
+            />
           </Field>
           <Field label="دقائق القراءة">
             <input name="readMinutes" type="number" min="1" max="120" dir="ltr" defaultValue={p?.readMinutes ?? 5} className={inputCls} />
@@ -404,9 +440,30 @@ export function PostForm({ post, saved }: { post: Post | null; saved?: boolean }
         </div>
       </div>
       <div className={panel}>
-        <h2 className="font-bold">نص المقال</h2>
+        <h2 className="font-bold">نص المقال (إنجليزي)</h2>
         <BodyEditor name="body" initial={p?.body ?? ""} />
       </div>
+      <ArabicPanel>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="العنوان (عربي)" className="sm:col-span-2">
+            <input name="arTitle" dir="rtl" defaultValue={ar.title} className={inputCls} />
+          </Field>
+          <Field label="التصنيف (عربي)">
+            <input name="arCategory" dir="rtl" defaultValue={ar.category} className={inputCls} />
+          </Field>
+          <Field label="الكاتب (عربي)">
+            <input name="arAuthor" dir="rtl" defaultValue={ar.author} className={inputCls} />
+          </Field>
+          <Field label="الوسوم (عربي)" hint="افصل بينها بفاصلة" className="sm:col-span-2">
+            <input name="arTags" dir="rtl" defaultValue={ar.tags} className={inputCls} />
+          </Field>
+          <Field label="المقتطف (عربي)" className="sm:col-span-2">
+            <textarea name="arExcerpt" rows={3} dir="rtl" defaultValue={ar.excerpt} className={inputCls} />
+          </Field>
+        </div>
+        <h3 className="font-semibold">نص المقال (عربي)</h3>
+        <BodyEditor name="arBody" initial={ar.body} />
+      </ArabicPanel>
       <SaveBar state={state} pending={pending} dirty={dirty} saved={saved} preview={p ? `/blog/${p.slug}` : undefined} />
     </form>
   );
@@ -436,6 +493,7 @@ export function PostRowActions({ id, published }: { id: number; published: boole
 export function PageForm({ page, saved }: { page: Page | null; saved?: boolean }) {
   const { state, pending, dirty, formProps } = useSave(savePage.bind(null, page?.id ?? null));
   const p = page;
+  const ar = conform(p?.ar, pageArTemplate);
   return (
     <form {...formProps} className="grid gap-4">
       <div className={panel}>
@@ -462,9 +520,21 @@ export function PageForm({ page, saved }: { page: Page | null; saved?: boolean }
         </div>
       </div>
       <div className={panel}>
-        <h2 className="font-bold">المحتوى</h2>
+        <h2 className="font-bold">المحتوى (إنجليزي)</h2>
         <BodyEditor name="body" initial={p?.body ?? ""} />
       </div>
+      <ArabicPanel>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="العنوان (عربي)">
+            <input name="arTitle" dir="rtl" defaultValue={ar.title} className={inputCls} />
+          </Field>
+          <Field label="العنوان الفرعي (عربي)">
+            <input name="arSubtitle" dir="rtl" defaultValue={ar.subtitle} className={inputCls} />
+          </Field>
+        </div>
+        <h3 className="font-semibold">المحتوى (عربي)</h3>
+        <BodyEditor name="arBody" initial={ar.body} />
+      </ArabicPanel>
       <SaveBar state={state} pending={pending} dirty={dirty} saved={saved} preview={p ? `/p/${p.slug}` : undefined} />
     </form>
   );

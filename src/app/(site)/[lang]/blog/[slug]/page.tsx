@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Ar, Icon, RichText, formatDay, formatPrice, headings } from "@/components/site/bits";
+import { Icon, RichText, formatDay, formatPrice, headings } from "@/components/site/bits";
 import { NewsletterForm } from "@/components/site/forms";
+import { Link } from "@/components/site/lang";
 import { getPost, getPosts, getPublishedSlugs, getSite, getTours } from "@/lib/site/data";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl, whatsappLink } from "@/lib/site/shape";
 
 export async function generateStaticParams() {
@@ -11,8 +12,9 @@ export async function generateStaticParams() {
   return (slugs.length ? slugs : ["__none__"]).map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {
-  const post = await getPost((await params).slug);
+export async function generateMetadata({ params }: PageProps<"/[lang]/blog/[slug]">): Promise<Metadata> {
+  const { lang } = await getUi();
+  const post = await getPost((await params).slug, lang);
   if (!post) return {};
   return {
     title: post.title,
@@ -21,9 +23,10 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
   };
 }
 
-export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">) {
+export default async function ArticlePage({ params }: PageProps<"/[lang]/blog/[slug]">) {
   const { slug } = await params;
-  const [post, posts, site, tours] = await Promise.all([getPost(slug), getPosts(), getSite(), getTours()]);
+  const { lang, t } = await getUi();
+  const [post, posts, site, tours] = await Promise.all([getPost(slug, lang), getPosts(lang), getSite(lang), getTours(lang)]);
   if (!post) notFound();
 
   const toc = headings(post.body);
@@ -31,10 +34,10 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
   const newer = index > 0 ? posts[index - 1] : null;
   const older = index >= 0 && index < posts.length - 1 ? posts[index + 1] : null;
   const related = posts.filter((p) => p.id !== post.id).slice(0, 3);
-  const tour = tours.find((t) => t.featured) ?? tours[0];
+  const tour = tours.find((x) => x.featured) ?? tours[0];
   const tags = post.tags
     .split(",")
-    .map((t) => t.trim())
+    .map((x) => x.trim())
     .filter(Boolean);
   const profile = site.guide.profile;
 
@@ -44,17 +47,17 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-2 text-label-md text-on-surface-variant">
           <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5">
             <Link href="/" className="hover:text-primary">
-              Home
+              {t.home}
             </Link>
             /
             <Link href="/blog" className="hover:text-primary">
-              Dispatches &amp; Field Journal
+              {t.blogCrumb}
             </Link>
             /<span className="text-antique-gold-dark">{post.category}</span>
           </nav>
           <span className="flex items-center gap-1">
             <Icon name="schedule" className="text-[16px] text-antique-gold" />
-            {post.readMinutes} min reading time · {formatDay(post.publishedAt)}
+            {t.minReading(post.readMinutes)} · {formatDay(post.publishedAt, lang)}
           </span>
         </div>
       </div>
@@ -66,11 +69,10 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
         <div className="relative mx-auto flex min-h-[420px] max-w-[1280px] flex-col justify-end px-margin-mobile pb-space-2xl md:min-h-[520px] md:px-margin">
           <span className="mb-space-sm inline-flex w-fit items-center gap-2 rounded-full border border-antique-gold/30 bg-white/10 px-3 py-1 text-label-md text-white backdrop-blur-sm">
             {post.category}
-            {post.kickerAr && <Ar className="text-antique-gold">{`• ${post.kickerAr}`}</Ar>}
           </span>
           <h1 className="max-w-4xl font-display text-headline-xl-mobile font-bold text-white md:text-[52px] md:leading-[62px]">{post.title}</h1>
           <p className="mt-space-sm max-w-3xl text-body-lead text-surface-container">{post.excerpt}</p>
-          <p className="mt-space-md text-label-lg text-surface-container-high">By {post.author}</p>
+          <p className="mt-space-md text-label-lg text-surface-container-high">{t.by(post.author)}</p>
         </div>
       </header>
 
@@ -81,9 +83,9 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
               <div className="mb-space-sm flex items-center justify-between">
                 <span className="flex items-center gap-2 font-display text-headline-sm text-primary">
                   <Icon name="list_alt" className="text-antique-gold" />
-                  In This Field Dispatch
+                  {t.contents}
                 </span>
-                <span className="text-label-md text-outline">Index 01—{String(toc.length).padStart(2, "0")}</span>
+                <span className="text-label-md text-outline">{t.index(toc.length)}</span>
               </div>
               <ol className="space-y-1.5">
                 {toc.map((h, i) => (
@@ -102,11 +104,11 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
 
           {tags.length > 0 && (
             <div className="mt-space-xl border-t border-surface-container-high pt-space-lg">
-              <span className="mb-2 block text-label-md font-semibold tracking-wider text-outline uppercase">Indexed Heritage Themes</span>
+              <span className="mb-2 block text-label-md font-semibold tracking-wider text-outline uppercase">{t.themes}</span>
               <div className="flex flex-wrap gap-2">
-                {tags.map((t) => (
-                  <span key={t} className="rounded-full bg-surface-container px-3 py-1 text-label-md text-primary">
-                    #{t.replace(/\s+/g, "")}
+                {tags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-surface-container px-3 py-1 text-label-md text-primary">
+                    #{tag.replace(/\s+/g, "")}
                   </span>
                 ))}
               </div>
@@ -116,13 +118,11 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
           <div className="mt-space-xl rounded-xl bg-primary p-space-lg text-white">
             <div className="flex items-center gap-2 text-label-lg font-semibold text-antique-gold">
               <Icon name="mark_email_read" />
-              The Syrian Cultural Digest
+              {t.digestEyebrow}
             </div>
-            <h2 className="mt-1 font-display text-headline-md">Receive Curated Archaeological Field Dispatches</h2>
-            <p className="mt-1 mb-space-md text-body-sm text-surface-container-high">
-              Directly from our on-ground historians: visa facilitation updates, newly opened sites, and invitation-only expedition dates.
-            </p>
-            <NewsletterForm placeholder="Enter your email address" button="Subscribe to Journal" variant="band" />
+            <h2 className="mt-1 font-display text-headline-md">{t.digestTitle}</h2>
+            <p className="mt-1 mb-space-md text-body-sm text-surface-container-high">{t.digestText}</p>
+            <NewsletterForm placeholder={t.newsletterPlaceholder} button={t.subscribeJournal} variant="band" />
           </div>
 
           {(newer || older) && (
@@ -130,7 +130,7 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
               {older ? (
                 <Link href={`/blog/${older.slug}`} className="rounded-xl border border-surface-container-high p-space-md hover:border-antique-gold/50">
                   <span className="flex items-center gap-1 text-label-md text-outline">
-                    <Icon name="arrow_back" className="text-[16px]" /> Previous Dispatch
+                    <Icon name="arrow_back" className="text-[16px]" /> {t.previous}
                   </span>
                   <span className="mt-1 line-clamp-2 block font-display text-headline-sm text-primary">{older.title}</span>
                 </Link>
@@ -138,9 +138,9 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
                 <span />
               )}
               {newer && (
-                <Link href={`/blog/${newer.slug}`} className="rounded-xl border border-surface-container-high p-space-md text-right hover:border-antique-gold/50">
+                <Link href={`/blog/${newer.slug}`} className="rounded-xl border border-surface-container-high p-space-md text-end hover:border-antique-gold/50">
                   <span className="flex items-center justify-end gap-1 text-label-md text-outline">
-                    Next Dispatch <Icon name="arrow_forward" className="text-[16px]" />
+                    {t.next} <Icon name="arrow_forward" className="text-[16px]" />
                   </span>
                   <span className="mt-1 line-clamp-2 block font-display text-headline-sm text-primary">{newer.title}</span>
                 </Link>
@@ -155,19 +155,17 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
               <div className="relative h-40">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={safeUrl(tour.image, "")} alt="" loading="lazy" className="size-full object-cover" />
-                <span className="absolute top-3 left-3 rounded-full bg-primary/90 px-2.5 py-1 text-label-md text-white">Flagship Expedition</span>
+                <span className="absolute top-3 start-3 rounded-full bg-primary/90 px-2.5 py-1 text-label-md text-white">{t.flagship}</span>
               </div>
               <div className="space-y-2 p-space-md">
                 {tour.details.rating && (
                   <span className="flex items-center gap-1 text-label-md text-antique-gold-dark">
                     <Icon name="star" fill className="text-[16px]" />
-                    {tour.details.rating} ({tour.details.reviews} Reviews)
+                    {tour.details.rating} {t.reviewsShort(tour.details.reviews)}
                   </span>
                 )}
                 <h3 className="font-display text-headline-sm text-primary">{tour.title}</h3>
-                <p className="line-clamp-3 text-body-sm text-on-surface-variant" dir="auto">
-                  {tour.summary}
-                </p>
+                <p className="line-clamp-3 text-body-sm text-on-surface-variant">{tour.summary}</p>
                 <div className="flex items-center justify-between text-label-md">
                   <span className="text-outline">{tour.details.durationLabel}</span>
                   <span className="font-display text-headline-sm font-bold text-primary">{formatPrice(tour.price)}</span>
@@ -177,7 +175,7 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
                   className="flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-label-lg text-white hover:bg-primary-light"
                 >
                   <Icon name="calendar_month" className="text-[18px] text-antique-gold" />
-                  Inquire &amp; Reserve Dates
+                  {t.inquire}
                 </Link>
               </div>
             </div>
@@ -190,19 +188,19 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
             <p className="text-label-md text-antique-gold-dark">{profile.role}</p>
             <p className="mt-1 text-body-sm text-on-surface-variant">{profile.about[0]?.text}</p>
             <a
-              href={whatsappLink(site.contact.whatsapp, `Hello Sandra, I have a question about "${post.title}"`)}
+              href={whatsappLink(site.contact.whatsapp, t.askSandraMessage(post.title))}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-space-sm inline-flex items-center gap-1.5 text-label-lg font-semibold text-primary hover:text-antique-gold-dark"
             >
               <Icon name="chat" className="text-[18px] text-antique-gold" />
-              Ask Sandra a Field Question
+              {t.askSandra}
             </a>
           </div>
 
           {related.length > 0 && (
             <div className="rounded-xl border border-surface-container-high bg-surface-container-lowest p-space-md">
-              <h3 className="mb-space-sm font-display text-headline-sm text-primary">Related Dispatches</h3>
+              <h3 className="mb-space-sm font-display text-headline-sm text-primary">{t.related}</h3>
               <ul className="space-y-space-sm">
                 {related.map((p) => (
                   <li key={p.id}>
@@ -212,7 +210,7 @@ export default async function ArticlePage({ params }: PageProps<"/blog/[slug]">)
                       <span>
                         <span className="block text-label-md text-antique-gold-dark">{p.category}</span>
                         <span className="line-clamp-2 text-body-sm font-semibold text-primary group-hover:text-antique-gold-dark">{p.title}</span>
-                        <span className="text-label-md text-outline">{p.readMinutes} min read</span>
+                        <span className="text-label-md text-outline">{t.minRead(p.readMinutes)}</span>
                       </span>
                     </Link>
                   </li>

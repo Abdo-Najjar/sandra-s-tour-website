@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container, RichText } from "@/components/site/bits";
 import { getPublicPage, getPublishedSlugs } from "@/lib/site/data";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl } from "@/lib/site/shape";
 
 // Extra pages created from the dashboard (terms, privacy, ...).
@@ -10,13 +11,13 @@ export async function generateStaticParams() {
   return (slugs.length ? slugs : ["__none__"]).map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Promise<Metadata> {
-  const page = await getPublicPage((await params).slug);
+export async function generateMetadata({ params }: PageProps<"/[lang]/p/[slug]">): Promise<Metadata> {
+  const page = await getPublicPage((await params).slug, (await getUi()).lang);
   return page ? { title: page.title, description: page.subtitle || undefined } : {};
 }
 
-export default async function CustomPage({ params }: PageProps<"/p/[slug]">) {
-  const page = await getPublicPage((await params).slug);
+export default async function CustomPage({ params }: PageProps<"/[lang]/p/[slug]">) {
+  const page = await getPublicPage((await params).slug, (await getUi()).lang);
   if (!page) notFound();
 
   return (
@@ -29,11 +30,11 @@ export default async function CustomPage({ params }: PageProps<"/p/[slug]">) {
           </>
         )}
         <Container className="relative">
-          <h1 className="max-w-4xl font-display text-display-hero-mobile font-bold md:text-display-hero" dir="auto">
+          <h1 className="max-w-4xl font-display text-display-hero-mobile font-bold md:text-display-hero">
             {page.title}
           </h1>
           {page.subtitle && (
-            <p className="mt-space-sm max-w-2xl text-body-lead text-surface-container-high" dir="auto">
+            <p className="mt-space-sm max-w-2xl text-body-lead text-surface-container-high">
               {page.subtitle}
             </p>
           )}

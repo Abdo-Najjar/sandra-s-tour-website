@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Container, Eyebrow, Icon, SectionTitle } from "@/components/site/bits";
 import { GuideRequestForm } from "@/components/site/forms";
+import { Link } from "@/components/site/lang";
 import { getSite } from "@/lib/site/data";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl, whatsappLink } from "@/lib/site/shape";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { guide } = await getSite();
+  const { lang } = await getUi();
+  const { guide } = await getSite(lang);
   return { title: guide.hero.title, description: guide.hero.text };
 }
 
 export default async function GuidePage() {
-  const site = await getSite();
+  const { lang, t } = await getUi();
+  const site = await getSite(lang);
   const { guide, contact, general } = site;
   const { profile } = guide;
 
@@ -19,7 +22,7 @@ export default async function GuidePage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden bg-surface-container py-space-2xl md:py-space-3xl">
-        <div className="pointer-events-none absolute -top-32 -right-32 size-[28rem] rounded-full bg-antique-gold/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-32 -end-32 size-[28rem] rounded-full bg-antique-gold/10 blur-3xl" />
         <Container className="relative">
           <div className="mb-space-md flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-antique-gold/30 bg-surface-container-lowest px-3 py-1.5 text-label-md font-semibold text-primary">
@@ -87,13 +90,13 @@ export default async function GuidePage() {
               <div className="mt-space-md grid gap-space-sm sm:grid-cols-2">
                 <div className="rounded-xl bg-surface-container p-space-md">
                   <span className="flex items-center gap-1 text-label-md text-outline">
-                    <Icon name="school" className="text-[16px] text-antique-gold-dark" /> Education
+                    <Icon name="school" className="text-[16px] text-antique-gold-dark" /> {t.education}
                   </span>
                   <p className="mt-1 text-body-sm font-semibold text-primary">{profile.education}</p>
                 </div>
                 <div className="rounded-xl bg-surface-container p-space-md">
                   <span className="flex items-center gap-1 text-label-md text-outline">
-                    <Icon name="translate" className="text-[16px] text-antique-gold-dark" /> Languages Spoken
+                    <Icon name="translate" className="text-[16px] text-antique-gold-dark" /> {t.languagesSpoken}
                   </span>
                   <p className="mt-1 text-body-sm font-semibold text-primary">{profile.languages}</p>
                 </div>
@@ -104,7 +107,7 @@ export default async function GuidePage() {
                   {profile.credentials}
                 </p>
               )}
-              <h3 className="mt-space-lg font-display text-headline-sm text-primary">About Me</h3>
+              <h3 className="mt-space-lg font-display text-headline-sm text-primary">{t.aboutMe}</h3>
               <div className="mt-2 space-y-space-sm text-body-md text-on-surface-variant italic">
                 {profile.about.map((p, i) => (
                   <p key={i}>&ldquo;{p.text}&rdquo;</p>
@@ -236,15 +239,15 @@ export default async function GuidePage() {
                 <div className="text-label-md text-outline">{guide.booking.cardRole}</div>
               </div>
               <span className="flex items-center gap-1 rounded-full bg-heritage-olive-light px-2.5 py-1 text-label-md text-heritage-olive">
-                <span className="size-1.5 rounded-full bg-heritage-olive" /> Live Concierge
+                <span className="size-1.5 rounded-full bg-heritage-olive" /> {t.liveConcierge}
               </span>
             </div>
             <GuideRequestForm
               options={guide.booking.options.map((o) => o.text)}
               submit={guide.booking.submit}
               success={guide.booking.success}
-              whatsappHref={whatsappLink(contact.whatsapp, "Hello Sandra, I would like to book you as my guide.")}
-              whatsappLabel={`Instant WhatsApp (${contact.whatsapp})`}
+              whatsappHref={whatsappLink(contact.whatsapp, t.guideWhatsapp)}
+              whatsappLabel={t.instantWhatsapp(contact.whatsapp)}
             />
           </div>
         </Container>
@@ -261,7 +264,7 @@ export default async function GuidePage() {
                 <p className="mt-2 text-body-lead text-on-surface-variant">{guide.network.text}</p>
               </div>
               <Link href="/about#team" className="inline-flex items-center gap-1 text-label-lg font-semibold text-primary hover:text-antique-gold-dark">
-                View All Roster <Icon name="arrow_forward" className="text-[18px] text-antique-gold" />
+                {t.viewRoster} <Icon name="arrow_forward" className="text-[18px] text-antique-gold" />
               </Link>
             </div>
             <div className="grid gap-space-lg md:grid-cols-3">

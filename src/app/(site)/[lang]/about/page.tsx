@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Ar, Container, Eyebrow, Icon, SectionTitle } from "@/components/site/bits";
+import { Container, Eyebrow, Icon, SectionTitle } from "@/components/site/bits";
+import { Link } from "@/components/site/lang";
 import { getSite } from "@/lib/site/data";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl } from "@/lib/site/shape";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { about } = await getSite();
+  const { lang } = await getUi();
+  const { about } = await getSite(lang);
   return { title: about.hero.title, description: about.hero.text1 };
 }
 
 export default async function AboutPage() {
-  const site = await getSite();
+  const { lang, t } = await getUi();
+  const site = await getSite(lang);
   const { about, general } = site;
   const { purpose } = about;
 
@@ -18,14 +21,11 @@ export default async function AboutPage() {
     <>
       {/* Story */}
       <section className="relative overflow-hidden bg-surface py-space-3xl">
-        <div className="pointer-events-none absolute -top-40 -left-40 size-[30rem] rounded-full bg-primary/5 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 -start-40 size-[30rem] rounded-full bg-primary/5 blur-3xl" />
         <Container className="relative grid items-center gap-space-2xl lg:grid-cols-12">
           <div className="lg:col-span-7">
             <Eyebrow icon="diversity_3">{about.hero.eyebrow}</Eyebrow>
             <h1 className="font-display text-display-hero-mobile font-bold tracking-tight text-primary md:text-display-hero">{about.hero.title}</h1>
-            <Ar as="p" className="mt-2 text-headline-sm font-bold text-heritage-olive">
-              {about.hero.titleAr}
-            </Ar>
             <div className="mt-space-lg space-y-space-md text-body-lead text-on-surface-variant">
               <p>{about.hero.text1}</p>
               <p>{about.hero.text2}</p>
@@ -52,7 +52,7 @@ export default async function AboutPage() {
               </div>
             </div>
             {about.hero.quote && (
-              <figure className="mt-space-xl rounded-xl border-l-4 border-antique-gold bg-surface-container p-space-lg">
+              <figure className="mt-space-xl rounded-xl border-s-4 border-antique-gold bg-surface-container p-space-lg">
                 <Icon name="format_quote" className="text-[32px] text-antique-gold" />
                 <blockquote className="font-display text-headline-sm text-primary italic">&ldquo;{about.hero.quote}&rdquo;</blockquote>
                 <figcaption className="mt-2 text-label-md text-on-surface-variant">{about.hero.quoteBy}</figcaption>
@@ -68,9 +68,6 @@ export default async function AboutPage() {
           <div className="mx-auto mb-space-2xl max-w-2xl text-center">
             <Eyebrow icon="flag">{purpose.eyebrow}</Eyebrow>
             <SectionTitle>{purpose.title}</SectionTitle>
-            <Ar as="p" className="mt-1 text-body-lead text-heritage-olive">
-              {purpose.titleAr}
-            </Ar>
           </div>
           <div className="grid gap-space-lg lg:grid-cols-2">
             {[
@@ -90,9 +87,6 @@ export default async function AboutPage() {
                   <span className={`text-label-lg font-semibold tracking-wider uppercase ${b.dark ? "text-antique-gold" : "text-heritage-olive"}`}>{b.kicker}</span>
                 </div>
                 <h3 className={`mt-space-md font-display text-headline-lg ${b.dark ? "text-white" : "text-primary"}`}>{b.title}</h3>
-                <Ar as="p" className={`text-body-md font-semibold ${b.dark ? "text-antique-gold" : "text-antique-gold-dark"}`}>
-                  {b.titleAr}
-                </Ar>
                 <p className={`mt-space-md text-body-md ${b.dark ? "text-surface-container-high" : "text-on-surface-variant"}`}>{b.text}</p>
                 {b.tag && (
                   <span className={`mt-auto inline-flex items-center gap-2 pt-space-lg text-label-lg font-semibold ${b.dark ? "text-antique-gold" : "text-primary"}`}>
@@ -125,7 +119,7 @@ export default async function AboutPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={safeUrl(about.founder.image, "")} alt={about.founder.title} loading="lazy" className="size-full object-cover" />
             </div>
-            <span className="absolute -bottom-4 left-6 inline-flex items-center gap-1.5 rounded-full border border-antique-gold/40 bg-primary px-4 py-2 text-label-md text-white shadow-lg">
+            <span className="absolute -bottom-4 start-6 inline-flex items-center gap-1.5 rounded-full border border-antique-gold/40 bg-primary px-4 py-2 text-label-md text-white shadow-lg">
               <Icon name="verified" className="text-[18px] text-antique-gold" />
               {about.founder.badge}
             </span>
@@ -133,9 +127,6 @@ export default async function AboutPage() {
           <div className="lg:col-span-7">
             <Eyebrow>{about.founder.eyebrow}</Eyebrow>
             <SectionTitle>{about.founder.title}</SectionTitle>
-            <Ar as="p" className="mt-1 text-body-lead font-semibold text-heritage-olive">
-              {about.founder.titleAr}
-            </Ar>
             <div className="mt-space-md flex flex-wrap gap-2">
               {about.founder.creds.map((c) => (
                 <span key={c.text} className="inline-flex items-center gap-1.5 rounded-full bg-surface-container px-3 py-1.5 text-label-md text-primary">
@@ -180,17 +171,14 @@ export default async function AboutPage() {
                   <div className="flex flex-1 flex-col p-space-md">
                     <span className="text-label-md font-semibold tracking-wider text-antique-gold-dark uppercase">{m.field}</span>
                     <h3 className="mt-1 font-display text-headline-sm text-primary">{m.name}</h3>
-                    <Ar as="p" className="text-body-sm text-heritage-olive">
-                      {m.nameAr}
-                    </Ar>
                     <p className="mt-2 text-body-sm text-on-surface-variant">{m.bio}</p>
                     <dl className="mt-auto grid grid-cols-2 gap-2 border-t border-surface-container-high pt-space-sm text-label-md">
                       <div>
-                        <dt className="text-outline">Languages:</dt>
+                        <dt className="text-outline">{t.languages}</dt>
                         <dd className="font-semibold text-primary">{m.languages}</dd>
                       </div>
                       <div>
-                        <dt className="text-outline">Field Exp:</dt>
+                        <dt className="text-outline">{t.experience}</dt>
                         <dd className="font-semibold text-primary">{m.experience}</dd>
                       </div>
                     </dl>
@@ -217,9 +205,6 @@ export default async function AboutPage() {
                   <Icon name={a.icon} className="text-[30px]" />
                 </span>
                 <h3 className="mt-space-sm font-sans text-headline-sm font-semibold text-primary">{a.title}</h3>
-                <Ar as="p" className="text-body-sm text-heritage-olive">
-                  {a.titleAr}
-                </Ar>
                 <p className="mt-2 text-body-sm text-on-surface-variant">{a.text}</p>
               </div>
             ))}
@@ -259,7 +244,7 @@ export default async function AboutPage() {
 
       {/* CTA */}
       <section className="relative overflow-hidden bg-primary py-space-3xl text-white">
-        <div className="pointer-events-none absolute -right-32 -bottom-32 size-96 rounded-full bg-antique-gold/20 blur-3xl" />
+        <div className="pointer-events-none absolute -end-32 -bottom-32 size-96 rounded-full bg-antique-gold/20 blur-3xl" />
         <Container className="relative text-center">
           <p className="text-label-lg font-semibold text-antique-gold">{about.cta.eyebrow}</p>
           <h2 className="mx-auto mt-2 max-w-3xl font-display text-headline-xl-mobile md:text-headline-xl">{about.cta.title}</h2>

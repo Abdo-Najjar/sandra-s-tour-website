@@ -1,13 +1,17 @@
-import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
+import type { Lang } from "@/lib/site/i18n";
 import { safeUrl } from "@/lib/site/shape";
+import { Link } from "./lang";
 
 // Small building blocks shared by the public pages.
+
+// Arrows and chevrons that point "forward" are mirrored in Arabic.
+const DIRECTIONAL = /^(arrow_forward|arrow_back|chevron_right|chevron_left|keyboard_arrow_right|keyboard_arrow_left|near_me|send|east|west)$/;
 
 export function Icon({ name, className = "", fill = false }: { name: string; className?: string; fill?: boolean }) {
   if (!name) return null;
   return (
-    <span aria-hidden className={`material-symbols-outlined ${fill ? "icon-fill" : ""} ${className}`}>
+    <span aria-hidden className={`material-symbols-outlined ${fill ? "icon-fill" : ""} ${DIRECTIONAL.test(name) ? "rtl-flip" : ""} ${className}`}>
       {name}
     </span>
   );
@@ -34,20 +38,6 @@ export function SectionTitle({ children, className = "" }: { children: ReactNode
     <h2 className={`font-display text-headline-xl-mobile font-semibold tracking-tight text-primary md:text-headline-xl ${className}`}>
       {children}
     </h2>
-  );
-}
-
-// Text with Arabic letters gets right-to-left direction and the Arabic font.
-export function hasArabic(text: string) {
-  return /[؀-ۿ]/.test(text);
-}
-
-export function Ar({ children, className = "", as: Tag = "span" }: { children: string; className?: string; as?: "span" | "p" | "div" | "h2" | "h3" }) {
-  if (!children) return null;
-  return (
-    <Tag lang="ar" dir="rtl" className={`font-arabic ${className}`}>
-      {children}
-    </Tag>
   );
 }
 
@@ -98,15 +88,16 @@ export function formatPrice(n: number) {
   return `$${Math.round(n).toLocaleString("en-US")}`;
 }
 
-export function formatDay(date: string) {
+export function formatDay(date: string, lang: Lang = "en") {
   const d = new Date(date.length === 10 ? `${date}T00:00:00Z` : date.replace(" ", "T") + "Z");
   if (Number.isNaN(d.getTime())) return date;
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", year: "numeric", timeZone: "UTC" }).format(d);
+  const locale = lang === "ar" ? "ar-SY-u-nu-latn" : "en-US";
+  return new Intl.DateTimeFormat(locale, { month: "short", day: "2-digit", year: "numeric", timeZone: "UTC" }).format(d);
 }
 
 export function initials(name: string) {
   return name
-    .replace(/^(dr\.?|chef)\s+/i, "")
+    .replace(/^(dr\.?|chef|د\.)\s*/i, "")
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)

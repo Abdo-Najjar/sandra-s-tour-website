@@ -3,7 +3,7 @@
 // never ends up with missing or unexpected keys (shared by client and server).
 
 const MAX_TEXT = 20_000;
-const MAX_ITEMS = 60;
+const MAX_ITEMS = 150;
 
 export function conform<T>(value: unknown, template: T): T {
   if (typeof template === "string") {

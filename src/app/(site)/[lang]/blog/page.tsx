@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Ar, Container, Icon, formatDay } from "@/components/site/bits";
+import { Container, Icon, formatDay } from "@/components/site/bits";
 import { NewsletterForm } from "@/components/site/forms";
+import { Link } from "@/components/site/lang";
 import { PostBrowser } from "@/components/site/post-browser";
 import { getPosts, getSite } from "@/lib/site/data";
+import { getUi } from "@/lib/site/lang";
 import { safeUrl } from "@/lib/site/shape";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { blog } = await getSite();
+  const { lang } = await getUi();
+  const { blog } = await getSite(lang);
   return { title: blog.hero.title, description: blog.hero.text };
 }
 
 export default async function BlogPage() {
-  const [site, posts] = await Promise.all([getSite(), getPosts()]);
+  const { lang, t } = await getUi();
+  const [site, posts] = await Promise.all([getSite(lang), getPosts(lang)]);
   const { blog, general } = site;
   const featured = posts.find((p) => p.featured) ?? posts[0];
   const rest = posts.filter((p) => p.id !== featured?.id);
@@ -20,13 +23,12 @@ export default async function BlogPage() {
   return (
     <>
       <section className="relative overflow-hidden bg-surface-container pt-space-2xl pb-space-2xl">
-        <div className="pointer-events-none absolute -top-40 right-0 size-[28rem] rounded-full bg-antique-gold/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 end-0 size-[28rem] rounded-full bg-antique-gold/10 blur-3xl" />
         <Container className="relative">
           <div className="mb-space-md flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-antique-gold/30 bg-surface-container-lowest px-3 py-1 text-label-md font-semibold text-primary">
               {blog.hero.eyebrow}
             </span>
-            <Ar className="rounded-full bg-heritage-olive-light px-3 py-1 text-label-md font-semibold text-heritage-olive">{blog.hero.eyebrowAr}</Ar>
             <span className="flex items-center gap-1 text-label-md text-outline">
               <Icon name="history_edu" className="text-[16px] text-antique-gold" />
               {blog.hero.issue}
@@ -56,16 +58,15 @@ export default async function BlogPage() {
               <Link href={`/blog/${featured.slug}`} className="relative block min-h-[280px] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={safeUrl(featured.cover, "")} alt={featured.title} className="absolute inset-0 size-full object-cover" />
-                <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-basalt-charcoal/85 px-3 py-1.5 text-label-md text-white backdrop-blur-sm">
+                <span className="absolute top-4 start-4 inline-flex items-center gap-1.5 rounded-full bg-basalt-charcoal/85 px-3 py-1.5 text-label-md text-white backdrop-blur-sm">
                   <Icon name="auto_stories" className="text-[16px] text-antique-gold" />
-                  {featured.category} · {featured.readMinutes} MIN READ
+                  {featured.category} · {t.minRead(featured.readMinutes)}
                 </span>
               </Link>
               <div className="flex flex-col justify-center gap-space-md p-space-lg md:p-space-xl">
                 <div className="flex flex-wrap items-center gap-2 text-label-md font-semibold tracking-wider text-antique-gold-dark uppercase">
                   <Icon name="stars" className="text-[18px]" />
-                  Featured Expedition Essay
-                  {featured.kickerAr && <Ar className="text-heritage-olive normal-case">{`• ${featured.kickerAr}`}</Ar>}
+                  {t.featuredEssay}
                 </div>
                 <h2 className="font-display text-headline-lg text-primary md:text-headline-xl">
                   <Link href={`/blog/${featured.slug}`} className="hover:text-antique-gold-dark">
@@ -77,12 +78,12 @@ export default async function BlogPage() {
                   <div className="flex flex-wrap gap-2">
                     {featured.tags
                       .split(",")
-                      .map((t) => t.trim())
+                      .map((tag) => tag.trim())
                       .filter(Boolean)
                       .slice(0, 5)
-                      .map((t) => (
-                        <span key={t} className="rounded bg-surface-container px-2 py-1 text-label-md text-on-surface-variant">
-                          #{t.replace(/\s+/g, "")}
+                      .map((tag) => (
+                        <span key={tag} className="rounded bg-surface-container px-2 py-1 text-label-md text-on-surface-variant">
+                          #{tag.replace(/\s+/g, "")}
                         </span>
                       ))}
                   </div>
@@ -90,13 +91,13 @@ export default async function BlogPage() {
                 <div className="flex flex-wrap items-center justify-between gap-space-md border-t border-surface-container-high pt-space-md">
                   <div className="text-label-md text-outline">
                     <div className="font-semibold text-primary">{featured.author}</div>
-                    {formatDay(featured.publishedAt)}
+                    {formatDay(featured.publishedAt, lang)}
                   </div>
                   <Link
                     href={`/blog/${featured.slug}`}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-space-lg py-3 text-label-lg text-white shadow-md hover:bg-primary-light"
                   >
-                    Read Full Dispatch <Icon name="arrow_forward" className="text-[18px] text-antique-gold" />
+                    {t.readFull} <Icon name="arrow_forward" className="text-[18px] text-antique-gold" />
                   </Link>
                 </div>
               </div>
@@ -131,9 +132,6 @@ export default async function BlogPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={safeUrl(general.logo, "")} alt="" className="mx-auto size-20 rounded-full bg-white/10 object-contain p-1" />
               <h3 className="mt-space-sm font-display text-headline-md">{blog.standards.sealTitle}</h3>
-              <Ar as="p" className="text-body-sm text-antique-gold">
-                {blog.standards.sealTitleAr}
-              </Ar>
               <p className="mt-2 text-body-sm text-surface-container-high">{blog.standards.sealText}</p>
               <Link href="/about" className="mt-space-md inline-flex items-center gap-1 text-label-lg font-semibold text-antique-gold hover:underline">
                 {blog.standards.sealButton} <Icon name="arrow_forward" className="text-[18px]" />
@@ -150,7 +148,7 @@ export default async function BlogPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={safeUrl(blog.newsletter.image, "")} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/85 to-transparent" />
-              <div className="absolute right-4 bottom-4 left-4 text-white">
+              <div className="absolute inset-x-4 bottom-4 text-white">
                 <div className="font-display text-headline-sm">{blog.newsletter.imageTitle}</div>
                 <div className="text-label-md opacity-80">{blog.newsletter.imageText}</div>
               </div>
@@ -159,7 +157,7 @@ export default async function BlogPage() {
               <span className="block text-label-lg font-semibold tracking-wider text-antique-gold-dark uppercase">{blog.newsletter.eyebrow}</span>
               <h2 className="mt-1 font-display text-headline-lg text-primary">{blog.newsletter.title}</h2>
               <p className="mt-2 mb-space-md text-body-md text-on-surface-variant">{blog.newsletter.text}</p>
-              <NewsletterForm placeholder="Enter your email address" button={blog.newsletter.button} variant="light" />
+              <NewsletterForm placeholder={t.newsletterPlaceholder} button={blog.newsletter.button} variant="light" />
               <div className="mt-space-md flex flex-wrap gap-space-md text-label-md text-on-surface-variant">
                 {blog.newsletter.notes.map((n) => (
                   <span key={n.text} className="flex items-center gap-1">

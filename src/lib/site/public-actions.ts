@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { bookings, db, messages, subscribers, tours } from "@/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { isLang, ui } from "./i18n";
 
 // Forms on the public website. Anyone can call these, so every field is
 // length-limited, a hidden "website" field catches simple bots, and each
@@ -17,6 +18,11 @@ const int = (fd: FormData, key: string, min: number, max: number, fallback: numb
   return Number.isInteger(n) ? Math.min(max, Math.max(min, n)) : fallback;
 };
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+// Error messages in the language of the page the form was sent from.
+const errorsFor = (fd: FormData) => {
+  const lang = fd.get("lang");
+  return ui[isLang(lang) ? lang : "en"].errors;
+};
 
 async function guard(fd: FormData, bucket: string, limit: number): Promise<PublicFormState | null> {
   // Bots fill every field; people never see this one. Pretend it worked.
@@ -24,7 +30,7 @@ async function guard(fd: FormData, bucket: string, limit: number): Promise<Publi
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || h.get("x-real-ip") || "local";
   if (!rateLimit(`${bucket}:${ip}`, limit, 60 * 60 * 1000)) {
-    return { error: "Too many requests. Please try again later or contact us on WhatsApp." };
+    return { error: errorsFor(fd).tooMany };
   }
   return null;
 }
@@ -33,11 +39,12 @@ export async function createBooking(_: PublicFormState, fd: FormData): Promise<P
   const blocked = await guard(fd, "booking", 8);
   if (blocked) return blocked;
 
+  const err = errorsFor(fd);
   const name = str(fd, "name", 120);
   const email = str(fd, "email", 160).toLowerCase();
   const phone = str(fd, "phone", 60);
-  if (!name) return { error: "Please enter your full name." };
-  if (!isEmail(email)) return { error: "Please enter a valid email address." };
+  if (!name) return { error: err.name };
+  if (!isEmail(email)) return { error: err.email };
 
   const tourValue = str(fd, "tour", 40);
   let tourId: number | null = null;
@@ -78,9 +85,10 @@ export async function sendPartnership(_: PublicFormState, fd: FormData): Promise
   const name = str(fd, "name", 120);
   const email = str(fd, "email", 160).toLowerCase();
   const body = str(fd, "body", 5000);
-  if (!name) return { error: "Please enter your name or organization." };
-  if (!isEmail(email)) return { error: "Please enter a valid email address." };
-  if (body.length < 10) return { error: "Please describe your idea or project." };
+  const err = errorsFor(fd);
+  if (!name) return { error: err.org };
+  if (!isEmail(email)) return { error: err.email };
+  if (body.length < 10) return { error: err.pitch };
 
   await db.insert(messages).values({
     kind: "partnership",
@@ -99,7 +107,7 @@ export async function subscribe(_: PublicFormState, fd: FormData): Promise<Publi
   if (blocked) return blocked;
 
   const email = str(fd, "email", 160).toLowerCase();
-  if (!isEmail(email)) return { error: "Please enter a valid email address." };
+  if (!isEmail(email)) return { error: errorsFor(fd).email };
   await db.insert(subscribers).values({ email }).onConflictDoNothing();
   return { ok: true };
 }

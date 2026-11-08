@@ -17,10 +17,11 @@ import {
 } from "@/db";
 import { authorize } from "@/lib/auth";
 import type { ActionState } from "@/lib/actions";
-import { defaultSiteContent, withDefaults, type SiteSection } from "./content";
+import { defaultContent, defaultSiteContent, siteRowId, withDefaults, type SiteSection } from "./content";
+import { isLang, type Lang } from "./i18n";
 import { TAGS } from "./data";
 import { conform, slugify } from "./shape";
-import { tourDetails } from "./tour";
+import { pageArTemplate, postArTemplate, tourDetails, tourDetailsTemplate } from "./tour";
 
 // Dashboard actions for the public website. Admins and editors may use all
 // of them. Each change expires the matching public cache tag so the website
@@ -56,35 +57,46 @@ async function uniqueSlug(table: typeof tours | typeof posts | typeof pages, wan
   return `${base}-${Date.now()}`;
 }
 
+// Keeps only the Arabic fields that were filled in; empty ones fall back to English.
+function onlyFilled(obj: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (typeof v === "string" ? v.trim() : Array.isArray(v) ? v.length : v !== undefined && v !== null) out[k] = v;
+  }
+  return out;
+}
+
 // ---------- Site content ----------
 
-export async function saveSiteSection(section: SiteSection, _: ActionState, fd: FormData): Promise<ActionState> {
+export async function saveSiteSection(section: SiteSection, lang: Lang, _: ActionState, fd: FormData): Promise<ActionState> {
   if (!(await authorize())) return { error: NO_PERMISSION };
-  if (!(section in defaultSiteContent)) return { error: "قسم غير معروف" };
+  if (!(section in defaultSiteContent) || !isLang(lang)) return { error: "قسم غير معروف" };
 
   const value = parseJson(fd.get("data"));
   if (value === undefined) return { error: "تعذر قراءة البيانات" };
 
-  const row = await db.query.site.findFirst({ where: eq(site.id, 1) });
-  const current = withDefaults(row?.data);
-  const next = { ...current, [section]: conform(value, defaultSiteContent[section]) };
+  const id = siteRowId(lang);
+  const row = await db.query.site.findFirst({ where: eq(site.id, id) });
+  const current = withDefaults(row?.data, lang);
+  const next = { ...current, [section]: conform(value, defaultContent(lang)[section]) };
 
   await db
     .insert(site)
-    .values({ id: 1, data: next })
+    .values({ id, data: next })
     .onConflictDoUpdate({ target: site.id, set: { data: next, updatedAt: sql`(datetime('now'))` } });
   updateTag(TAGS.site);
   return { ok: true };
 }
 
-export async function resetSiteSection(section: SiteSection) {
+export async function resetSiteSection(section: SiteSection, lang: Lang) {
   if (!(await authorize(["admin"]))) return;
-  if (!(section in defaultSiteContent)) return;
-  const row = await db.query.site.findFirst({ where: eq(site.id, 1) });
-  const next = { ...withDefaults(row?.data), [section]: defaultSiteContent[section] };
+  if (!(section in defaultSiteContent) || !isLang(lang)) return;
+  const id = siteRowId(lang);
+  const row = await db.query.site.findFirst({ where: eq(site.id, id) });
+  const next = { ...withDefaults(row?.data, lang), [section]: defaultContent(lang)[section] };
   await db
     .insert(site)
-    .values({ id: 1, data: next })
+    .values({ id, data: next })
     .onConflictDoUpdate({ target: site.id, set: { data: next, updatedAt: sql`(datetime('now'))` } });
   updateTag(TAGS.site);
   refresh();
@@ -103,9 +115,16 @@ export async function saveTour(id: number | null, _: ActionState, fd: FormData):
   if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 365) return { error: "عدد الأيام يجب أن يكون بين 1 و 365" };
 
   const details = parseJson(fd.get("details"));
+  const arTitle = str(fd, "arTitle", 200);
+  const ar = {
+    title: arTitle,
+    summary: str(fd, "arSummary", 2000),
+    details: onlyFilled(conform(parseJson(fd.get("arDetails")), tourDetailsTemplate)),
+  };
   const values = {
     title,
-    titleAr: str(fd, "titleAr", 200),
+    titleAr: arTitle,
+    ar,
     slug: await uniqueSlug(tours, str(fd, "slug", 100) || title, id ?? undefined),
     category: str(fd, "category", 50),
     region: str(fd, "region", 50),
@@ -158,8 +177,20 @@ export async function savePost(id: number | null, _: ActionState, fd: FormData):
   const values = {
     title,
     slug: await uniqueSlug(posts, str(fd, "slug", 100) || title, id ?? undefined),
-    kickerAr: str(fd, "kickerAr", 120),
     category: str(fd, "category", 120),
+    ar: onlyFilled(
+      conform(
+        {
+          title: str(fd, "arTitle", 300),
+          category: str(fd, "arCategory", 120),
+          excerpt: str(fd, "arExcerpt", 1000),
+          author: str(fd, "arAuthor", 200),
+          tags: str(fd, "arTags", 300),
+          body: str(fd, "arBody", 100_000),
+        },
+        postArTemplate,
+      ),
+    ),
     excerpt: str(fd, "excerpt", 1000),
     cover: str(fd, "cover", 500),
     author: str(fd, "author", 200),
@@ -208,6 +239,9 @@ export async function savePage(id: number | null, _: ActionState, fd: FormData):
     title,
     slug: await uniqueSlug(pages, str(fd, "slug", 100) || title, id ?? undefined),
     subtitle: str(fd, "subtitle", 300),
+    ar: onlyFilled(
+      conform({ title: str(fd, "arTitle", 200), subtitle: str(fd, "arSubtitle", 300), body: str(fd, "arBody", 100_000) }, pageArTemplate),
+    ),
     image: str(fd, "image", 500),
     body: str(fd, "body", 100_000),
     published: bool(fd, "published"),

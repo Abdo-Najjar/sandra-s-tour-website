@@ -85,7 +85,7 @@ const updatedAt = () =>
     .notNull()
     .default(sql`(datetime('now'))`);
 
-// Single row (id = 1) with all editable website text/images as JSON.
+// One row per language (1 = English, 2 = Arabic) with all editable website text/images as JSON.
 // Shape + defaults: src/lib/site/content.ts
 export const site = sqliteTable("site", {
   id: integer("id").primaryKey(),
@@ -110,6 +110,8 @@ export const tours = sqliteTable("tours", {
   featured: integer("featured", { mode: "boolean" }).notNull().default(false),
   published: integer("published", { mode: "boolean" }).notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  // Arabic version: { title, summary, details }. Shape: src/lib/site/tour.ts
+  ar: text("ar", { mode: "json" }).notNull().default(sql`'{}'`),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -129,6 +131,8 @@ export const posts = sqliteTable("posts", {
   publishedAt: text("published_at").notNull().default(sql`(date('now'))`),
   featured: integer("featured", { mode: "boolean" }).notNull().default(false),
   published: integer("published", { mode: "boolean" }).notNull().default(true),
+  // Arabic version: { title, category, excerpt, author, tags, body }.
+  ar: text("ar", { mode: "json" }).notNull().default(sql`'{}'`),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -181,6 +185,8 @@ export const pages = sqliteTable("pages", {
   published: integer("published", { mode: "boolean" }).notNull().default(true),
   showInMenu: integer("show_in_menu", { mode: "boolean" }).notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
+  // Arabic version: { title, subtitle, body }.
+  ar: text("ar", { mode: "json" }).notNull().default(sql`'{}'`),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
