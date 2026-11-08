@@ -24,27 +24,48 @@ export default async function GuidePage() {
       <section className="relative overflow-hidden bg-surface-container py-space-2xl md:py-space-3xl">
         <div className="pointer-events-none absolute -top-32 -end-32 size-[28rem] rounded-full bg-antique-gold/10 blur-3xl" />
         <Container className="relative">
-          <div className="mb-space-md flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-antique-gold/30 bg-surface-container-lowest px-3 py-1.5 text-label-md font-semibold text-primary">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={safeUrl(general.logo, "")} alt="" className="size-5 rounded-full object-contain" />
-              {guide.hero.eyebrow}
-            </span>
-            <span className="inline-flex items-center gap-2 text-label-md text-heritage-olive">
-              <span className="size-2 animate-pulse rounded-full bg-heritage-olive" />
-              {guide.hero.status}
-            </span>
-          </div>
-          <h1 className="max-w-4xl font-display text-display-hero-mobile font-bold tracking-tight text-primary md:text-display-hero">{guide.hero.title}</h1>
-          <p className="mt-space-md max-w-2xl text-body-lead text-on-surface-variant">{guide.hero.text}</p>
-          <div className="mt-space-lg flex flex-col gap-space-sm sm:flex-row">
-            <a href="#booking" className="inline-flex items-center justify-center gap-2 rounded-lg border border-antique-gold/40 bg-primary px-space-lg py-3.5 text-label-lg text-white shadow-md hover:bg-primary-light">
-              {guide.hero.primary}
-              <Icon name="arrow_forward" className="text-[18px] text-antique-gold" />
-            </a>
-            <a href="#network" className="inline-flex items-center justify-center rounded-lg border border-surface-container-high bg-surface-container-lowest px-space-lg py-3.5 text-label-lg text-primary hover:bg-surface">
-              {guide.hero.secondary}
-            </a>
+          <div className="grid items-center gap-space-xl lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <div className="mb-space-md flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-antique-gold/30 bg-surface-container-lowest px-3 py-1.5 text-label-md font-semibold text-primary">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={safeUrl(general.logo, "")} alt="" className="size-5 rounded-full object-contain" />
+                  {guide.hero.eyebrow}
+                </span>
+                <span className="inline-flex items-center gap-2 text-label-md text-heritage-olive">
+                  <span className="size-2 animate-pulse rounded-full bg-heritage-olive" />
+                  {guide.hero.status}
+                </span>
+              </div>
+              <h1 className="max-w-4xl font-display text-display-hero-mobile font-bold tracking-tight text-primary md:text-display-hero">{guide.hero.title}</h1>
+              <p className="mt-space-md max-w-2xl text-body-lead text-on-surface-variant">{guide.hero.text}</p>
+              <div className="mt-space-lg flex flex-col gap-space-sm sm:flex-row">
+                <a href="#booking" className="inline-flex items-center justify-center gap-2 rounded-lg border border-antique-gold/40 bg-primary px-space-lg py-3.5 text-label-lg text-white shadow-md hover:bg-primary-light">
+                  {guide.hero.primary}
+                  <Icon name="arrow_forward" className="text-[18px] text-antique-gold" />
+                </a>
+                <a href="#network" className="inline-flex items-center justify-center rounded-lg border border-surface-container-high bg-surface-container-lowest px-space-lg py-3.5 text-label-lg text-primary hover:bg-surface">
+                  {guide.hero.secondary}
+                </a>
+              </div>
+            </div>
+
+            {/* Sandra's photo */}
+            <figure className="relative mx-auto w-full max-w-sm lg:col-span-5 lg:max-w-none">
+              <div className="absolute -inset-3 rotate-2 rounded-[1.75rem] border border-antique-gold/30" aria-hidden />
+              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-antique-gold/30 shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={safeUrl(profile.image, "")} alt={profile.name} className="size-full object-cover object-[50%_35%]" />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-basalt-charcoal/75 to-transparent" />
+                <figcaption className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 rounded-xl border border-antique-gold/30 bg-primary/85 px-space-md py-3 text-white backdrop-blur-sm">
+                  <span>
+                    <span className="block font-display text-headline-sm font-semibold">{profile.name}</span>
+                    <span className="block text-label-md text-surface-container-high">{profile.role}</span>
+                  </span>
+                  <Icon name="verified" className="text-[26px] text-antique-gold" />
+                </figcaption>
+              </div>
+            </figure>
           </div>
           <div className="mt-space-2xl grid grid-cols-2 gap-space-md lg:grid-cols-4">
             {guide.hero.stats.map((s) => (

@@ -4,8 +4,25 @@
     {
       "name": "dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "review",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "next",
+        "dev",
+        "-p",
+        "3100"
+      ],
+      "port": 3100,
+      "env": {
+        "DATABASE_URL": "file:C:/Users/hp/AppData/Local/Temp/claude/60b5365c1b07f2b0/ecbe120d-84cf-4999-8147-7c545b17c6d5/scratchpad/check.db"
+      }
     }
   ]
 }

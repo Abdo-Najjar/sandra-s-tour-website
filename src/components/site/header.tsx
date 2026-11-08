@@ -9,11 +9,47 @@ import { LanguageSwitch, Link, useUi } from "./lang";
 
 type MenuItem = { label: string; href: string };
 
-function isActive(fullPath: string, href: string) {
+// A plain page link is active on that page; a section link ("/contact#faq")
+// takes over while its section is on screen.
+function isActive(fullPath: string, href: string, section: string | null) {
   const pathname = stripLang(fullPath);
-  const path = href.split("#")[0];
-  if (!path || href.includes("#")) return false;
-  return path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`);
+  const [path, hash] = href.split("#");
+  if (hash) return section === hash && (!path || pathname === path);
+  if (!path) return false;
+  const onPage = path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`);
+  return onPage && !section;
+}
+
+// The id of the menu section ("faq") that is on screen right now, if any.
+function useMenuSection(fullPath: string, menu: MenuItem[]) {
+  const [section, setSection] = useState<string | null>(null);
+  useEffect(() => {
+    const pathname = stripLang(fullPath);
+    const els = menu
+      .map((m) => m.href.split("#"))
+      .filter(([path, id]) => id && (!path || path === pathname))
+      .map(([, id]) => document.getElementById(id))
+      .filter((el): el is HTMLElement => !!el);
+    const update = () => {
+      const line = window.innerHeight * 0.35;
+      const hit = els.find((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top <= line && r.bottom > line;
+      });
+      setSection(hit?.id ?? null);
+    };
+    const frame = requestAnimationFrame(update);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("hashchange", update);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("hashchange", update);
+    };
+  }, [fullPath, menu]);
+  return section;
 }
 
 export function SiteHeader({
@@ -32,6 +68,7 @@ export function SiteHeader({
   bookHref: string;
 }) {
   const pathname = usePathname();
+  const section = useMenuSection(pathname, menu);
   const t = useUi();
   const [open, setOpen] = useState(false);
 
@@ -65,7 +102,7 @@ export function SiteHeader({
 
         <nav className="hidden items-center gap-space-xs xl:flex" aria-label="Main">
           {menu.map((item) => {
-            const active = isActive(pathname, item.href);
+            const active = isActive(pathname, item.href, section);
             return (
               <Link
                 key={item.href + item.label}
@@ -107,7 +144,7 @@ export function SiteHeader({
         <nav id="mobile-menu" aria-label="Mobile" className="max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-surface-container-high bg-surface px-margin-mobile pb-space-lg xl:hidden" onClick={(e) => (e.target as HTMLElement).closest("a") && setOpen(false)}>
           <ul className="flex flex-col py-space-sm">
             {menu.map((item) => {
-              const active = isActive(pathname, item.href);
+              const active = isActive(pathname, item.href, section);
               return (
                 <li key={item.href + item.label}>
                   <Link
