@@ -27,7 +27,7 @@ async function ToursList() {
   return (
     <Card className="overflow-hidden p-0">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
               <th className="px-5 py-3 text-right font-medium">الجولة</th>
@@ -50,10 +50,10 @@ async function ToursList() {
                     </div>
                   </Link>
                 </td>
-                <td className="px-5 py-3 whitespace-nowrap">{t.durationDays} {t.durationDays === 1 ? "يوم" : "أيام"}</td>
-                <td className="px-5 py-3 font-semibold">{formatMoney(t.price)}</td>
-                <td className="px-5 py-3">{t.bookings}</td>
-                <td className="px-5 py-3">
+                <td data-label="المدة" className="px-5 py-3 whitespace-nowrap">{t.durationDays} {t.durationDays === 1 ? "يوم" : "أيام"}</td>
+                <td data-label="السعر" className="px-5 py-3 font-semibold">{formatMoney(t.price)}</td>
+                <td data-label="الحجوزات" className="px-5 py-3">{t.bookings}</td>
+                <td className="rtable-end px-5 py-3">
                   <div className="flex justify-end">
                     <TourRowActions id={t.id} featured={t.featured} published={t.published} />
                   </div>

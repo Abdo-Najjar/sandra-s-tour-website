@@ -13,10 +13,8 @@ import {
   Map as MapIcon,
   Menu,
   Newspaper,
-  Package,
   PanelsTopLeft,
   Settings,
-  ShoppingCart,
   Users,
   UsersRound,
   X,
@@ -41,13 +39,6 @@ const groups: { title?: string; items: NavItem[] }[] = [
     ],
   },
   {
-    title: "المتجر",
-    items: [
-      { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart },
-      { href: "/admin/products", label: "المنتجات", icon: Package },
-    ],
-  },
-  {
     title: "النظام",
     items: [
       { href: "/admin/users", label: "المستخدمون", icon: Users },
@@ -67,7 +58,7 @@ function NavGroups({ pathname, badges, onNavigate }: { pathname: string; badges:
     <>
       {groups.map((g, i) => (
         <div key={i}>
-          {g.title && <div className="mb-1 px-3 text-xs font-semibold text-muted">{g.title}</div>}
+          {g.title && <div className="mb-1.5 px-3 text-[11px] font-bold tracking-wide text-accent">{g.title}</div>}
           <div className="space-y-0.5">
             {g.items.map(({ href, label, icon: Icon }) => {
               const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
@@ -77,7 +68,7 @@ function NavGroups({ pathname, badges, onNavigate }: { pathname: string; badges:
                   href={href}
                   onClick={onNavigate}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    active ? "bg-primary-soft text-primary" : "text-muted hover:bg-surface-2 hover:text-foreground"
+                    active ? "bg-primary text-white shadow-sm" : "text-muted hover:bg-surface-2 hover:text-foreground"
                   }`}
                 >
                   <Icon className="size-[18px]" />
@@ -133,8 +124,11 @@ export function DashboardShell({
         <div className="flex h-16 shrink-0 items-center justify-between px-5">
           <Link href="/admin" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/site/logo.png" alt="" className="size-9 rounded-full border border-border object-contain" />
-            <span className="text-lg font-bold">لوحة التحكم</span>
+            <img src="/site/logo.png" alt="" className="size-10 rounded-full border border-accent/40 bg-white object-contain p-0.5" />
+            <span className="leading-tight">
+              <span className="block font-bold">لوحة التحكم</span>
+              <span className="block text-xs text-accent" dir="ltr">Syria Guide Tours</span>
+            </span>
           </Link>
           <button className="-me-2 flex size-10 items-center justify-center rounded-lg hover:bg-surface-2 lg:hidden" onClick={() => setOpen(false)} aria-label="إغلاق">
             <X className="size-5" />

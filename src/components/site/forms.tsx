@@ -19,7 +19,7 @@ type Action = (state: PublicFormState, fd: FormData) => Promise<PublicFormState>
 function useSiteForm(action: Action) {
   const [state, run] = useActionState(action, undefined);
   const [pending, start] = useTransition();
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     start(() => run(fd));

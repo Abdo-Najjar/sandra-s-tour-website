@@ -28,7 +28,7 @@ async function SubscribersContent() {
         <Card className="py-12 text-center text-muted">لا يوجد مشتركون بعد.</Card>
       ) : (
         <Card className="overflow-hidden p-0">
-          <table className="w-full text-sm">
+          <table className="rtable w-full text-sm">
             <thead className="bg-surface-2 text-muted">
               <tr>
                 <th className="px-5 py-3 text-right font-medium">البريد</th>
@@ -44,10 +44,10 @@ async function SubscribersContent() {
                       {s.email}
                     </a>
                   </td>
-                  <td className="px-5 py-3 text-muted" dir="ltr">
-                    {formatDate(s.createdAt)}
+                  <td data-label="الاشتراك" className="px-5 py-3 text-muted">
+                    <span dir="ltr">{formatDate(s.createdAt)}</span>
                   </td>
-                  <td className="px-5 py-3 text-left">{me.role === "admin" && <DeleteSubscriberButton id={s.id} />}</td>
+                  <td className="rtable-end px-5 py-3 text-left">{me.role === "admin" && <DeleteSubscriberButton id={s.id} />}</td>
                 </tr>
               ))}
             </tbody>

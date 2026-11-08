@@ -24,10 +24,9 @@ import {
 } from "@/lib/site/admin-actions";
 import type { SiteContent, SiteSection } from "@/lib/site/content";
 import { localHref, type Lang } from "@/lib/site/i18n";
-import { conform } from "@/lib/site/shape";
-import { emptyTourDetails, tourDetailsTemplate, type TourDetails } from "@/lib/site/tour";
+import { emptyTourDetails, tourDetailsTemplate } from "@/lib/site/tour";
 import type { AdminPage, AdminPost, AdminTour } from "@/lib/queries";
-import type { BookingStatus, Page, Post, Tour } from "@/db/schema";
+import type { BookingStatus } from "@/db/schema";
 import { bookingStatusLabels } from "@/lib/site/labels";
 import { ContentEditor, ImageInput, inputCls, uploadImage } from "./content-editor";
 
@@ -51,7 +50,7 @@ function useSave(action: Action) {
         // Editor buttons (add / remove / move) change data too.
         if ((e.target as HTMLElement).closest("button[type=button]")) setDirty(true);
       },
-      onSubmit: (e: React.FormEvent<HTMLFormElement>) => {
+      onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
         setDirty(false);

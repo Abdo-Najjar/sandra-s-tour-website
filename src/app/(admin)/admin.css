@@ -1,38 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7fb;
+  /* Same family as the website: navy, antique gold and warm paper tones. */
+  --background: #f7f5f0;
   --surface: #ffffff;
-  --surface-2: #f1f3f9;
-  --border: #e4e7ef;
-  --foreground: #111827;
-  --muted: #6b7280;
-  --primary: #4f46e5;
-  --primary-soft: #eef2ff;
-  --success: #059669;
-  --success-soft: #ecfdf5;
-  --warning: #d97706;
-  --warning-soft: #fffbeb;
-  --danger: #dc2626;
-  --danger-soft: #fef2f2;
+  --surface-2: #f3efe6;
+  --border: #e7e1d4;
+  --foreground: #15243d;
+  --muted: #6b7180;
+  --primary: #1e3354;
+  --primary-soft: #eaeef5;
+  --accent: #b88b48;
+  --accent-soft: #f8f0e1;
+  --success: #3f7a4a;
+  --success-soft: #edf5ec;
+  --warning: #a8701f;
+  --warning-soft: #fbf3e2;
+  --danger: #c0392b;
+  --danger-soft: #fbeceb;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b0f19;
-    --surface: #121826;
-    --surface-2: #1a2132;
-    --border: #252d40;
-    --foreground: #e5e7eb;
-    --muted: #9ca3af;
-    --primary: #818cf8;
-    --primary-soft: #1e1b4b;
-    --success: #34d399;
-    --success-soft: #052e22;
-    --warning: #fbbf24;
-    --warning-soft: #2d1f04;
-    --danger: #f87171;
-    --danger-soft: #2f0d0d;
+    --background: #0d1320;
+    --surface: #141c2c;
+    --surface-2: #1b2539;
+    --border: #273248;
+    --foreground: #e8e4da;
+    --muted: #9aa1b0;
+    --primary: #d6b47a;
+    --primary-soft: #2a2416;
+    --accent: #d6b47a;
+    --accent-soft: #2a2416;
+    --success: #7cc28a;
+    --success-soft: #11291a;
+    --warning: #e3b45f;
+    --warning-soft: #2e2410;
+    --danger: #f08a7e;
+    --danger-soft: #331512;
   }
 }
 
@@ -45,6 +50,8 @@
   --color-muted: var(--muted);
   --color-primary: var(--primary);
   --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
@@ -72,4 +79,56 @@ body {
   -webkit-font-feature-settings: "liga";
   font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
+}
+
+/* Text on a primary button: white on navy, dark on gold in dark mode. */
+:root {
+  --on-primary: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --on-primary: #141c2c;
+  }
+}
+.text-white.bg-primary,
+.bg-primary.text-white {
+  color: var(--on-primary);
+}
+
+/* Tables become stacked cards on phones: the first cell is the title,
+   the other cells follow as "label: value" and the actions sit at the end. */
+@media (max-width: 639.98px) {
+  table.rtable,
+  table.rtable tbody {
+    display: block;
+  }
+  table.rtable thead {
+    display: none;
+  }
+  table.rtable tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 1rem;
+    padding: 0.875rem 1rem;
+  }
+  table.rtable tbody td {
+    display: block;
+    padding: 0;
+  }
+  table.rtable tbody td:first-child {
+    flex-basis: 100%;
+  }
+  table.rtable tbody td[colspan] {
+    flex-basis: 100%;
+    padding: 2rem 0;
+  }
+  table.rtable td[data-label]::before {
+    content: attr(data-label) ": ";
+    color: var(--muted);
+    font-weight: 400;
+  }
+  table.rtable td.rtable-end {
+    margin-inline-start: auto;
+  }
 }

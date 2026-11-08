@@ -5,10 +5,8 @@ import type { TourDetails } from "../lib/site/tour";
 import type { Tr } from "../lib/site/translatable";
 
 export const USER_ROLES = ["admin", "editor", "user"] as const;
-export const ORDER_STATUSES = ["completed", "processing", "cancelled"] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
-export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 const createdAt = () =>
   text("created_at")
@@ -37,43 +35,7 @@ export const sessions = sqliteTable("sessions", {
   createdAt: createdAt(),
 });
 
-export const products = sqliteTable("products", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  category: text("category").notNull(),
-  price: real("price").notNull(),
-  stock: integer("stock").notNull().default(0),
-  createdAt: createdAt(),
-});
-
-export const orders = sqliteTable("orders", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  customer: text("customer").notNull(),
-  productId: integer("product_id")
-    .notNull()
-    .references(() => products.id, { onDelete: "cascade" }),
-  quantity: integer("quantity").notNull().default(1),
-  amount: real("amount").notNull(),
-  status: text("status", { enum: ORDER_STATUSES }).notNull().default("processing"),
-  createdAt: createdAt(),
-});
-
-// Single-row table (id = 1) for account and store settings.
-export const settings = sqliteTable("settings", {
-  id: integer("id").primaryKey(),
-  ownerName: text("owner_name").notNull(),
-  ownerEmail: text("owner_email").notNull(),
-  storeName: text("store_name").notNull(),
-  currency: text("currency").notNull().default("USD"),
-  notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
-  notifyOrders: integer("notify_orders", { mode: "boolean" }).notNull().default(true),
-  notifyReports: integer("notify_reports", { mode: "boolean" }).notNull().default(false),
-});
-
 export type User = typeof users.$inferSelect;
-export type Product = typeof products.$inferSelect;
-export type Order = typeof orders.$inferSelect;
-export type Settings = typeof settings.$inferSelect;
 
 // ---------- Public website ----------
 

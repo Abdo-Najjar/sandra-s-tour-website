@@ -91,6 +91,7 @@ export async function getPosts(lang: Lang) {
     .orderBy(desc(posts.publishedAt), desc(posts.id));
   // The list doesn't need the Arabic body.
   return rows.map((r) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { body: _body, ...p } = localizePost({ ...r, body: "" }, lang);
     return p;
   });

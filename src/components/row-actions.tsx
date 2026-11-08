@@ -2,48 +2,9 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { KeyRound, Search, Trash2 } from "lucide-react";
-import {
-  deleteProduct,
-  deleteUser,
-  setOrderStatus,
-  toggleUserActive,
-  updateStock,
-} from "@/lib/actions";
-import { formatDate, roleLabels, statusLabels } from "@/lib/format";
-import type { OrderStatus } from "@/db/schema";
+import { deleteUser, toggleUserActive } from "@/lib/actions";
+import { formatDate, roleLabels } from "@/lib/format";
 import type { UserRow } from "@/lib/queries";
-
-const statusStyle: Record<OrderStatus, string> = {
-  completed: "bg-success-soft text-success",
-  processing: "bg-warning-soft text-warning",
-  cancelled: "bg-danger-soft text-danger",
-};
-
-export function OrderStatusSelect({ id, status }: { id: number; status: OrderStatus }) {
-  const [optimistic, setOptimistic] = useOptimistic(status);
-  const [, startTransition] = useTransition();
-
-  return (
-    <select
-      aria-label="حالة الطلب"
-      value={optimistic}
-      onChange={(e) => {
-        const next = e.target.value as OrderStatus;
-        startTransition(async () => {
-          setOptimistic(next);
-          await setOrderStatus(id, next);
-        });
-      }}
-      className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-semibold outline-none ${statusStyle[optimistic]}`}
-    >
-      {Object.entries(statusLabels).map(([value, label]) => (
-        <option key={value} value={value} className="bg-surface text-foreground">
-          {label}
-        </option>
-      ))}
-    </select>
-  );
-}
 
 export function DeleteButton({ onDelete, label }: { onDelete: () => Promise<void>; label: string }) {
   const [pending, startTransition] = useTransition();
@@ -60,35 +21,6 @@ export function DeleteButton({ onDelete, label }: { onDelete: () => Promise<void
     >
       <Trash2 className="size-4" />
     </button>
-  );
-}
-
-export function DeleteProductButton({ id }: { id: number }) {
-  return <DeleteButton label="حذف المنتج وطلباته" onDelete={() => deleteProduct(id)} />;
-}
-
-export function StockEditor({ id, stock }: { id: number; stock: number }) {
-  const [value, setValue] = useState(String(stock));
-  const [, startTransition] = useTransition();
-
-  const commit = () => {
-    const n = Number(value);
-    if (!Number.isInteger(n) || n < 0) return setValue(String(stock));
-    if (n !== stock) startTransition(() => updateStock(id, n));
-  };
-
-  return (
-    <input
-      aria-label="المخزون"
-      type="number"
-      min="0"
-      dir="ltr"
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      className="w-16 rounded-md border border-transparent bg-transparent text-center font-bold outline-none hover:border-border focus:border-primary"
-    />
   );
 }
 
@@ -137,7 +69,7 @@ export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId:
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
               <th className="px-5 py-3 text-right font-medium">المستخدم</th>
@@ -161,7 +93,7 @@ export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId:
                     </div>
                   </div>
                 </td>
-                <td className="px-5 py-3">
+                <td data-label="الدور" className="px-5 py-3">
                   {roleLabels[u.role]}
                   {u.id === meId && <span className="mr-2 text-xs text-primary">(أنت)</span>}
                   {u.canLogin && (
@@ -170,11 +102,11 @@ export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId:
                     </span>
                   )}
                 </td>
-                <td className="px-5 py-3 text-muted" dir="ltr">{formatDate(u.createdAt)}</td>
-                <td className="px-5 py-3">
+                <td data-label="انضم" className="px-5 py-3 text-muted"><span dir="ltr">{formatDate(u.createdAt)}</span></td>
+                <td data-label="الحالة" className="px-5 py-3 [&>button]:align-middle">
                   <UserToggle user={u} disabled={!canManage || u.id === meId} />
                 </td>
-                <td className="px-5 py-3 text-left">
+                <td className="rtable-end px-5 py-3 text-left">
                   {canManage && u.id !== meId && (
                     <DeleteButton label={`حذف ${u.name}`} onDelete={() => deleteUser(u.id)} />
                   )}

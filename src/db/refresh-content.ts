@@ -1,5 +1,5 @@
 // Brings the website text of an existing database up to date, without touching
-// bookings, messages, subscribers, users, orders or prices.
+// bookings, messages, subscribers, users or prices.
 // Run on the server after updating the code and BEFORE `next build`
 // (the build pre-renders pages from the database):
 //   npm run db:push && npm run db:refresh-content && npm run build

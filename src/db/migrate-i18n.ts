@@ -100,8 +100,21 @@ async function migrateSite() {
   return true;
 }
 
+// The dashboard used to include a demo shop. Its tables held only sample
+// data, so they are removed.
+async function dropShopTables() {
+  let dropped = 0;
+  for (const table of ["orders", "products", "settings"]) {
+    if (!(await tableExists(table))) continue;
+    await client.execute(`drop table ${table}`);
+    dropped++;
+  }
+  if (dropped) console.log(`Removed the demo shop tables (${dropped}).`);
+}
+
 async function main() {
   await client.execute("pragma foreign_keys = off");
+  await dropShopTables();
   const site = await migrateSite();
   const tours = await migrateTable("tours", ["title", "summary"], { json: "ar", extra: { title_ar: "title" } }, ["details"]);
   const posts = await migrateTable("posts", ["title", "category", "excerpt", "author", "tags", "body"], { json: "ar", extra: { kicker_ar: "kicker" } });

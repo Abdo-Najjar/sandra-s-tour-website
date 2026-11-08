@@ -26,7 +26,7 @@ async function PostsList() {
   return (
     <Card className="overflow-hidden p-0">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
               <th className="px-5 py-3 text-right font-medium">المقال</th>
@@ -51,9 +51,9 @@ async function PostsList() {
                     </div>
                   </Link>
                 </td>
-                <td className="px-5 py-3" dir="auto">{pick(p.category, "ar")}</td>
-                <td className="px-5 py-3 whitespace-nowrap text-muted" dir="ltr">{p.publishedAt}</td>
-                <td className="px-5 py-3">
+                <td data-label="التصنيف" className="px-5 py-3" dir="auto">{pick(p.category, "ar")}</td>
+                <td data-label="التاريخ" className="px-5 py-3 whitespace-nowrap text-muted"><span dir="ltr">{p.publishedAt}</span></td>
+                <td className="rtable-end px-5 py-3">
                   <div className="flex justify-end">
                     <PostRowActions id={p.id} published={p.published} />
                   </div>

@@ -2,16 +2,11 @@
 
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   db,
-  orders,
-  products,
-  settings,
   users,
-  ORDER_STATUSES,
   USER_ROLES,
-  type OrderStatus,
   type UserRole,
 } from "@/db";
 import {
@@ -140,97 +135,3 @@ export async function deleteUser(id: number) {
   refresh();
 }
 
-// ---------- Products ----------
-
-export async function createProduct(_: ActionState, fd: FormData): Promise<ActionState> {
-  if (!(await authorize())) return { error: NO_PERMISSION };
-
-  const name = str(fd, "name");
-  const category = str(fd, "category");
-  const price = Number(str(fd, "price"));
-  const stock = Number(str(fd, "stock") || 0);
-
-  if (name.length < 2) return { error: "اسم المنتج قصير جداً" };
-  if (!category) return { error: "التصنيف مطلوب" };
-  if (!Number.isFinite(price) || price <= 0) return { error: "السعر يجب أن يكون أكبر من صفر" };
-  if (!Number.isInteger(stock) || stock < 0) return { error: "المخزون يجب أن يكون رقماً صحيحاً" };
-
-  await db.insert(products).values({ name, category, price, stock });
-  refresh();
-  return { ok: true };
-}
-
-export async function updateStock(id: number, stock: number) {
-  if (!(await authorize())) return;
-  if (!Number.isInteger(stock) || stock < 0) return;
-  await db.update(products).set({ stock }).where(eq(products.id, id));
-  refresh();
-}
-
-export async function deleteProduct(id: number) {
-  if (!(await authorize(["admin"]))) return;
-  await db.delete(products).where(eq(products.id, id));
-  refresh();
-}
-
-// ---------- Orders ----------
-
-export async function createOrder(_: ActionState, fd: FormData): Promise<ActionState> {
-  if (!(await authorize())) return { error: NO_PERMISSION };
-
-  const customer = str(fd, "customer");
-  const productId = Number(str(fd, "productId"));
-  const quantity = Number(str(fd, "quantity") || 1);
-
-  if (customer.length < 2) return { error: "اسم العميل مطلوب" };
-  if (!Number.isInteger(quantity) || quantity < 1) return { error: "الكمية غير صالحة" };
-
-  const product = await db.query.products.findFirst({ where: eq(products.id, productId) });
-  if (!product) return { error: "اختر منتجاً" };
-  if (product.stock < quantity) return { error: `المخزون المتوفر ${product.stock} فقط` };
-
-  // Take the stock only if it's still there (two orders at once can't oversell).
-  const taken = await db
-    .update(products)
-    .set({ stock: sql`${products.stock} - ${quantity}` })
-    .where(and(eq(products.id, productId), gte(products.stock, quantity)))
-    .returning({ id: products.id });
-  if (!taken.length) return { error: "المخزون لم يعد كافياً" };
-  await db.insert(orders).values({ customer, productId, quantity, amount: product.price * quantity });
-  refresh();
-  return { ok: true };
-}
-
-export async function setOrderStatus(id: number, status: OrderStatus) {
-  if (!(await authorize())) return;
-  if (!ORDER_STATUSES.includes(status)) return;
-  await db.update(orders).set({ status }).where(eq(orders.id, id));
-  refresh();
-}
-
-// ---------- Settings (admin only) ----------
-
-export async function saveSettings(_: ActionState, fd: FormData): Promise<ActionState> {
-  if (!(await authorize(["admin"]))) return { error: NO_PERMISSION };
-
-  const values = {
-    ownerName: str(fd, "ownerName"),
-    ownerEmail: str(fd, "ownerEmail").toLowerCase(),
-    storeName: str(fd, "storeName"),
-    currency: str(fd, "currency") || "USD",
-    notifyEmail: fd.get("notifyEmail") === "on",
-    notifyOrders: fd.get("notifyOrders") === "on",
-    notifyReports: fd.get("notifyReports") === "on",
-  };
-
-  if (values.ownerName.length < 2) return { error: "الاسم قصير جداً" };
-  if (!isEmail(values.ownerEmail)) return { error: "البريد الإلكتروني غير صالح" };
-  if (!values.storeName) return { error: "اسم المتجر مطلوب" };
-
-  await db
-    .insert(settings)
-    .values({ id: 1, ...values })
-    .onConflictDoUpdate({ target: settings.id, set: values });
-  refresh();
-  return { ok: true };
-}
