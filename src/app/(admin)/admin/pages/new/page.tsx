@@ -1,17 +1,16 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { BackLink } from "@/components/admin/new-link";
+import { getT } from "@/lib/admin/lang";
 import { PageHeader } from "@/components/ui";
 import { PageForm } from "@/components/admin/site-forms";
 
-export const metadata = { title: "صفحة جديدة" };
+export const metadata = { title: "New page" };
 
-export default function NewPage() {
+export default async function NewPage() {
+  const t = await getT();
   return (
     <>
-      <Link href="/admin/pages" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-        <ChevronRight className="size-4" /> صفحات إضافية
-      </Link>
-      <PageHeader title="صفحة جديدة" />
+      <BackLink href="/admin/pages" label={t("Extra pages", "صفحات إضافية")} />
+      <PageHeader title={t("New page", "صفحة جديدة")} />
       <PageForm page={null} />
     </>
   );

@@ -8,15 +8,16 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: { default: "لوحة التحكم", template: "%s | لوحة التحكم" },
-  description: "لوحة تحكم الموقع",
+  title: { default: "Dashboard", template: "%s | Dashboard" },
+  description: "Syria Guide Tours dashboard",
   robots: { index: false, follow: false },
 };
 
-// Root layout for the dashboard and the login page (Arabic, right-to-left).
+// Root layout for the dashboard and the login page. The language (English or
+// Arabic) is chosen per user; see lib/admin/i18n.ts.
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
+    <html lang="en" className={`${cairo.variable} h-full antialiased`}>
       <head>
         {/* Material Symbols: icon previews in the website editors */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font, @next/next/google-font-display */}

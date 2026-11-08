@@ -45,7 +45,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
 
 export function ContentSkeleton() {
   return (
-    <div aria-busy="true" aria-label="جارٍ التحميل" className="grid gap-4">
+    <div aria-busy="true" aria-label="Loading" className="grid gap-4">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
           <Skeleton key={i} className="h-28" />

@@ -4,6 +4,7 @@ import { NewUserButton } from "@/components/forms";
 import { UsersTable } from "@/components/row-actions";
 import { requireUser } from "@/lib/auth";
 import { getUsers } from "@/lib/queries";
+import { getT } from "@/lib/admin/lang";
 
 export default function UsersPage() {
   return (
@@ -14,20 +15,20 @@ export default function UsersPage() {
 }
 
 async function UsersContent() {
-  const [me, users] = await Promise.all([requireUser(), getUsers()]);
+  const [me, users, t] = await Promise.all([requireUser(), getUsers(), getT()]);
   const isAdmin = me.role === "admin";
   const active = users.filter((u) => u.active).length;
 
   return (
     <>
       <PageHeader
-        title="المستخدمون"
-        subtitle={`${active} نشط من أصل ${users.length}`}
+        title={t("Users", "المستخدمون")}
+        subtitle={t(`${active} active of ${users.length}`, `${active} نشط من أصل ${users.length}`)}
         action={isAdmin ? <NewUserButton /> : undefined}
       />
       {!isAdmin && (
         <p className="mb-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
-          يمكنك عرض المستخدمين فقط. التعديل متاح للمدير.
+          {t("You can only view users. Only an admin can change them.", "يمكنك عرض المستخدمين فقط. التعديل متاح للمدير.")}
         </p>
       )}
       <Card className="overflow-hidden p-0">

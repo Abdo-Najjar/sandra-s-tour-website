@@ -27,7 +27,9 @@ import { localHref, type Lang } from "@/lib/site/i18n";
 import { emptyTourDetails, tourDetailsTemplate } from "@/lib/site/tour";
 import type { AdminPage, AdminPost, AdminTour } from "@/lib/queries";
 import type { BookingStatus } from "@/db/schema";
-import { bookingStatusLabels } from "@/lib/site/labels";
+import { bookingStatusLabel } from "@/lib/site/labels";
+import { BOOKING_STATUSES } from "@/db/schema";
+import { useAdminLang, useT } from "@/components/admin/admin-lang";
 import { ContentEditor, ImageInput, inputCls, uploadImage } from "./content-editor";
 
 type Action = (state: ActionState, fd: FormData) => Promise<ActionState>;
@@ -75,6 +77,7 @@ function SaveBar({
   preview?: string;
   extra?: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="sticky bottom-0 z-10 -mx-4 mt-6 flex flex-wrap items-center gap-3 border-t border-border bg-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
       <button
@@ -82,20 +85,20 @@ function SaveBar({
         className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-        حفظ
+        {t("Save", "حفظ")}
       </button>
       {state?.error && <span className="text-sm text-danger">{state.error}</span>}
       {!state?.error && (state?.ok || saved) && !dirty && !pending && (
         <span className="inline-flex items-center gap-1 text-sm text-success">
-          <Check className="size-4" /> تم الحفظ، والتغييرات ظاهرة على الموقع
+          <Check className="size-4" /> {t("Saved. The changes are live on the website.", "تم الحفظ، والتغييرات ظاهرة على الموقع")}
         </span>
       )}
-      {dirty && !pending && <span className="text-sm text-warning">تغييرات غير محفوظة</span>}
-      <div className="mr-auto flex items-center gap-2">
+      {dirty && !pending && <span className="text-sm text-warning">{t("Unsaved changes", "تغييرات غير محفوظة")}</span>}
+      <div className="ms-auto flex items-center gap-2">
         {extra}
         {preview && (
           <a href={preview} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm hover:bg-surface-2">
-            <Eye className="size-4" /> معاينة
+            <Eye className="size-4" /> {t("Preview", "معاينة")}
           </a>
         )}
       </div>
@@ -132,11 +135,14 @@ const panel = "grid gap-4 rounded-xl border border-border bg-surface p-4 sm:p-5"
 
 // Box for the Arabic version of a tour, article or page.
 function ArabicPanel({ children }: { children: React.ReactNode }) {
+  const t = useT();
   return (
     <div className={panel}>
       <div>
-        <h2 className="font-bold">النسخة العربية</h2>
-        <p className="text-sm text-muted">تظهر على الموقع العربي (/ar). أي حقل تتركه فارغاً يظهر بالإنجليزي.</p>
+        <h2 className="font-bold">{t("Arabic version", "النسخة العربية")}</h2>
+        <p className="text-sm text-muted">
+          {t("Shown on the Arabic website (/ar). Any field left empty shows the English text.", "تظهر على الموقع العربي (/ar). أي حقل تتركه فارغاً يظهر بالإنجليزي.")}
+        </p>
       </div>
       {children}
     </div>
@@ -158,6 +164,7 @@ export function SectionForm<S extends SiteSection>({
   preview: string;
   lang: Lang;
 }) {
+  const t = useT();
   const { state, pending, dirty, formProps } = useSave(saveSiteSection.bind(null, section, lang));
   const [resetting, startReset] = useTransition();
 
@@ -175,12 +182,12 @@ export function SectionForm<S extends SiteSection>({
             type="button"
             disabled={resetting}
             onClick={() => {
-              if (!confirm("إرجاع هذا القسم إلى المحتوى الأصلي؟ ستفقد تعديلاتك عليه.")) return;
+              if (!confirm(t("Reset this section to the original text? Your edits to it will be lost.", "إرجاع هذا القسم إلى المحتوى الأصلي؟ ستفقد تعديلاتك عليه."))) return;
               startReset(() => resetSiteSection(section, lang));
             }}
             className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted hover:bg-surface-2"
           >
-            <RotateCcw className="size-4" /> المحتوى الأصلي
+            <RotateCcw className="size-4" /> {t("Original text", "المحتوى الأصلي")}
           </button>
         }
       />
@@ -204,83 +211,88 @@ export function TourForm({
   saved?: boolean;
 }) {
   const { state, pending, dirty, formProps } = useSave(saveTour.bind(null, tour?.id ?? null));
-  const t = tour;
+  const t = useT();
   const ar = tour?.ar ?? { title: "", summary: "", details: emptyTourDetails };
 
   return (
     <form {...formProps} className="grid gap-4">
       <div className={panel}>
-        <h2 className="font-bold">الأساسيات</h2>
+        <h2 className="font-bold">{t("Basics", "الأساسيات")}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="اسم الجولة (إنجليزي)">
-            <input name="title" required dir="auto" defaultValue={t?.title} className={inputCls} />
+          <Field label={t("Tour name (English)", "اسم الجولة (إنجليزي)")}>
+            <input name="title" required dir="auto" defaultValue={tour?.title} className={inputCls} />
           </Field>
-          <Field label="الرابط (slug)" hint="يُترك فارغاً ليُنشأ من الاسم">
-            <input name="slug" dir="ltr" defaultValue={t?.slug} className={inputCls} />
+          <Field label={t("Link (slug)", "الرابط (slug)")} hint={t("Leave empty to make it from the name", "يُترك فارغاً ليُنشأ من الاسم")}>
+            <input name="slug" dir="ltr" defaultValue={tour?.slug} className={inputCls} />
           </Field>
           <div className="grid grid-cols-3 gap-3">
-            <Field label="السعر ($)">
-              <input name="price" type="number" min="0" step="1" required dir="ltr" defaultValue={t?.price ?? 0} className={inputCls} />
+            <Field label={t("Price ($)", "السعر ($)")}>
+              <input name="price" type="number" min="0" step="1" required dir="ltr" defaultValue={tour?.price ?? 0} className={inputCls} />
             </Field>
-            <Field label="الأيام">
-              <input name="durationDays" type="number" min="1" max="365" required dir="ltr" defaultValue={t?.durationDays ?? 1} className={inputCls} />
+            <Field label={t("Days", "الأيام")}>
+              <input name="durationDays" type="number" min="1" max="365" required dir="ltr" defaultValue={tour?.durationDays ?? 1} className={inputCls} />
             </Field>
-            <Field label="الترتيب">
-              <input name="sortOrder" type="number" dir="ltr" defaultValue={t?.sortOrder ?? 0} className={inputCls} />
+            <Field label={t("Order", "الترتيب")}>
+              <input name="sortOrder" type="number" dir="ltr" defaultValue={tour?.sortOrder ?? 0} className={inputCls} />
             </Field>
           </div>
-          <Field label="التصنيف">
-            <select name="category" defaultValue={t?.category ?? categories[0]?.key} className={inputCls}>
+          <Field label={t("Category", "التصنيف")}>
+            <select name="category" defaultValue={tour?.category ?? categories[0]?.key} className={inputCls}>
               {categories.map((c) => (
                 <option key={c.key} value={c.key}>{c.label}</option>
               ))}
             </select>
           </Field>
-          <Field label="المنطقة">
-            <select name="region" defaultValue={t?.region ?? regions[0]?.key} className={inputCls}>
+          <Field label={t("Region", "المنطقة")}>
+            <select name="region" defaultValue={tour?.region ?? regions[0]?.key} className={inputCls}>
               {regions.map((r) => (
                 <option key={r.key} value={r.key}>{r.label}</option>
               ))}
             </select>
           </Field>
-          <Field label="الصورة الرئيسية" className="sm:col-span-2">
-            <ImageField name="image" initial={t?.image ?? ""} />
+          <Field label={t("Main photo", "الصورة الرئيسية")} className="sm:col-span-2">
+            <ImageField name="image" initial={tour?.image ?? ""} />
           </Field>
-          <Field label="الملخص (إنجليزي)" className="sm:col-span-2">
-            <textarea name="summary" rows={3} dir="auto" defaultValue={t?.summary} className={inputCls} />
+          <Field label={t("Summary (English)", "الملخص (إنجليزي)")} className="sm:col-span-2">
+            <textarea name="summary" rows={3} dir="auto" defaultValue={tour?.summary} className={inputCls} />
           </Field>
         </div>
         <div className="flex flex-wrap gap-6">
-          <Check2 name="published" label="منشورة على الموقع" defaultChecked={t?.published ?? true} />
-          <Check2 name="featured" label="مميزة (تظهر في الصفحة الرئيسية)" defaultChecked={t?.featured ?? false} />
+          <Check2 name="published" label={t("Published on the website", "منشورة على الموقع")} defaultChecked={tour?.published ?? true} />
+          <Check2 name="featured" label={t("Featured (shown on the home page)", "مميزة (تظهر في الصفحة الرئيسية)")} defaultChecked={tour?.featured ?? false} />
         </div>
       </div>
 
       <div className="grid gap-2">
-        <h2 className="font-bold">تفاصيل صفحة الجولة</h2>
-        <p className="text-sm text-muted">كل ما يظهر في صفحة الجولة: المواصفات، الصور، البرنامج اليومي، ما يشمله السعر، الأسئلة وغيرها.</p>
-        <ContentEditor name="details" template={tourDetailsTemplate} initial={t?.details ?? emptyTourDetails} />
+        <h2 className="font-bold">{t("Tour page details", "تفاصيل صفحة الجولة")}</h2>
+        <p className="text-sm text-muted">
+          {t("Everything on the tour page: specs, photos, day-by-day plan, what's included, questions and more.", "كل ما يظهر في صفحة الجولة: المواصفات، الصور، البرنامج اليومي، ما يشمله السعر، الأسئلة وغيرها.")}
+        </p>
+        <ContentEditor name="details" template={tourDetailsTemplate} initial={tour?.details ?? emptyTourDetails} />
       </div>
 
       <ArabicPanel>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="اسم الجولة (عربي)">
+          <Field label={t("Tour name (Arabic)", "اسم الجولة (عربي)")}>
             <input name="arTitle" dir="rtl" defaultValue={ar.title} className={inputCls} />
           </Field>
-          <Field label="الملخص (عربي)" className="sm:col-span-2">
+          <Field label={t("Summary (Arabic)", "الملخص (عربي)")} className="sm:col-span-2">
             <textarea name="arSummary" rows={3} dir="rtl" defaultValue={ar.summary} className={inputCls} />
           </Field>
         </div>
-        <p className="text-sm text-muted">تفاصيل الصفحة بالعربي. القوائم (البرنامج اليومي، الأسئلة...) إن أضفتها بالعربي تحل محل الإنجليزية بالكامل.</p>
+        <p className="text-sm text-muted">
+          {t("Page details in Arabic. A list you fill in Arabic (day plan, questions…) replaces the English list completely.", "تفاصيل الصفحة بالعربي. القوائم (البرنامج اليومي، الأسئلة...) إن أضفتها بالعربي تحل محل الإنجليزية بالكامل.")}
+        </p>
         <ContentEditor name="arDetails" template={tourDetailsTemplate} initial={ar.details} />
       </ArabicPanel>
 
-      <SaveBar state={state} pending={pending} dirty={dirty} saved={saved} preview={t ? `/tours/${t.slug}` : undefined} />
+      <SaveBar state={state} pending={pending} dirty={dirty} saved={saved} preview={tour ? `/tours/${tour.slug}` : undefined} />
     </form>
   );
 }
 
 export function TourRowActions({ id, featured, published }: { id: number; featured: boolean; published: boolean }) {
+  const t = useT();
   const [state, setState] = useOptimistic({ featured, published });
   const [, startTransition] = useTransition();
   const flip = (field: "featured" | "published") =>
@@ -294,26 +306,27 @@ export function TourRowActions({ id, featured, published }: { id: number; featur
       <button
         type="button"
         onClick={() => flip("featured")}
-        title={state.featured ? "إلغاء التمييز" : "تمييز في الرئيسية"}
+        title={state.featured ? t("Remove from home page", "إلغاء التمييز") : t("Feature on home page", "تمييز في الرئيسية")}
         className={`rounded-lg p-2 hover:bg-surface-2 ${state.featured ? "text-warning" : "text-muted"}`}
       >
         <Star className={`size-4 ${state.featured ? "fill-current" : ""}`} />
       </button>
       <PublishedPill published={state.published} onClick={() => flip("published")} />
-      <DeleteButton label="حذف الجولة" onDelete={() => deleteTour(id)} />
+      <DeleteButton label={t("Delete tour", "حذف الجولة")} onDelete={() => deleteTour(id)} />
     </div>
   );
 }
 
 function PublishedPill({ published, onClick }: { published: boolean; onClick: () => void }) {
+  const t = useT();
   return (
     <button
       type="button"
       onClick={onClick}
-      title="تبديل النشر"
+      title={t("Publish / unpublish", "تبديل النشر")}
       className={`rounded-full px-2.5 py-1 text-xs font-semibold ${published ? "bg-success-soft text-success" : "bg-surface-2 text-muted"}`}
     >
-      {published ? "منشور" : "مسودة"}
+      {published ? t("Published", "منشور") : t("Draft", "مسودة")}
     </button>
   );
 }
@@ -323,6 +336,7 @@ function PublishedPill({ published, onClick }: { published: boolean; onClick: ()
 function BodyEditor({ name, initial }: { name: string; initial: string }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const t = useT();
   const [busy, setBusy] = useState(false);
 
   const insert = (text: string) => {
@@ -338,13 +352,13 @@ function BodyEditor({ name, initial }: { name: string; initial: string }) {
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center gap-1 text-xs">
         {[
-          ["عنوان", "\n## عنوان\n"],
-          ["عنوان فرعي", "\n### عنوان فرعي\n"],
-          ["عريض", "**نص**"],
-          ["مائل", "*نص*"],
-          ["قائمة", "\n- عنصر\n- عنصر\n"],
-          ["اقتباس", "\n> اقتباس\n"],
-          ["رابط", "[النص](https://)"],
+          [t("Heading", "عنوان"), t("\n## Heading\n", "\n## عنوان\n")],
+          [t("Subheading", "عنوان فرعي"), t("\n### Subheading\n", "\n### عنوان فرعي\n")],
+          [t("Bold", "عريض"), t("**text**", "**نص**")],
+          [t("Italic", "مائل"), t("*text*", "*نص*")],
+          [t("List", "قائمة"), t("\n- item\n- item\n", "\n- عنصر\n- عنصر\n")],
+          [t("Quote", "اقتباس"), t("\n> quote\n", "\n> اقتباس\n")],
+          [t("Link", "رابط"), t("[text](https://)", "[النص](https://)")],
         ].map(([label, text]) => (
           <button key={label} type="button" onClick={() => insert(text)} className="rounded-md border border-border px-2 py-1 hover:bg-surface-2">
             {label}
@@ -357,7 +371,7 @@ function BodyEditor({ name, initial }: { name: string; initial: string }) {
           className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 hover:bg-surface-2 disabled:opacity-60"
         >
           {busy && <Loader2 className="size-3 animate-spin" />}
-          صورة
+          {t("Image", "صورة")}
         </button>
         <input
           ref={fileRef}
@@ -370,7 +384,7 @@ function BodyEditor({ name, initial }: { name: string; initial: string }) {
             if (!file) return;
             setBusy(true);
             try {
-              insert(`\n![وصف الصورة](${await uploadImage(file)})\n`);
+              insert(`\n![${t("image description", "وصف الصورة")}](${await uploadImage(file, t("Couldn't upload the image", "تعذر رفع الصورة"))})\n`);
             } catch (err) {
               alert((err as Error).message);
             } finally {
@@ -381,14 +395,18 @@ function BodyEditor({ name, initial }: { name: string; initial: string }) {
       </div>
       <textarea ref={ref} name={name} rows={22} dir="auto" defaultValue={initial} className={`${inputCls} font-mono leading-7`} />
       <p className="text-xs text-muted">
-        التنسيق: <code dir="ltr">## عنوان</code>، <code dir="ltr">- قائمة</code>، <code dir="ltr">&gt; اقتباس</code>، <code dir="ltr">**عريض**</code>،{" "}
-        <code dir="ltr">[رابط](https://...)</code>، <code dir="ltr">![صورة](/uploads/...)</code>. اترك سطراً فارغاً بين الفقرات.
+        {t("Formatting:", "التنسيق:")} <code dir="ltr">## {t("Heading", "عنوان")}</code> · <code dir="ltr">- {t("list", "قائمة")}</code> ·{" "}
+        <code dir="ltr">&gt; {t("quote", "اقتباس")}</code> · <code dir="ltr">**{t("bold", "عريض")}**</code> ·{" "}
+        <code dir="ltr">[{t("link", "رابط")}](https://...)</code> · <code dir="ltr">![{t("image", "صورة")}](/uploads/...)</code>.{" "}
+        {t("Leave an empty line between paragraphs.", "اترك سطراً فارغاً بين الفقرات.")}
       </p>
     </div>
   );
 }
 
 export function PostForm({ post, saved }: { post: AdminPost | null; saved?: boolean }) {
+  const t = useT();
+  const lang = useAdminLang();
   const { state, pending, dirty, formProps } = useSave(savePost.bind(null, post?.id ?? null));
   const p = post;
   const ar = p?.ar ?? { title: "", category: "", excerpt: "", author: "", tags: "", body: "" };
@@ -397,70 +415,76 @@ export function PostForm({ post, saved }: { post: AdminPost | null; saved?: bool
     <form {...formProps} className="grid gap-4">
       <div className={panel}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="العنوان (إنجليزي)" className="sm:col-span-2">
+          <Field label={t("Title (English)", "العنوان (إنجليزي)")} className="sm:col-span-2">
             <input name="title" required dir="auto" defaultValue={p?.title} className={inputCls} />
           </Field>
-          <Field label="الرابط (slug)" hint="يُترك فارغاً ليُنشأ من العنوان">
+          <Field label={t("Link (slug)", "الرابط (slug)")} hint={t("Leave empty to make it from the title", "يُترك فارغاً ليُنشأ من العنوان")}>
             <input name="slug" dir="ltr" defaultValue={p?.slug} className={inputCls} />
           </Field>
-          <Field label="التصنيف" hint="مثل: History أو Food">
+          <Field label={t("Category", "التصنيف")} hint={t("For example: History or Food", "مثل: History أو Food")}>
             <input name="category" dir="auto" defaultValue={p?.category} className={inputCls} />
           </Field>
-          <Field label="الكاتب">
+          <Field label={t("Author", "الكاتب")}>
             <input name="author" dir="auto" defaultValue={p?.author} className={inputCls} />
           </Field>
-          <Field label="تاريخ النشر" hint="فارغ = اليوم">
+          <Field label={t("Publish date", "تاريخ النشر")} hint={t("Empty = today", "فارغ = اليوم")}>
             <DatePicker
               name="publishedAt"
               theme="admin"
-              locale="ar-SY-u-nu-latn"
-              weekStart={6}
+              locale={lang === "ar" ? "ar-SY-u-nu-latn" : "en-GB"}
+              weekStart={lang === "ar" ? 6 : 1}
               defaultValue={p?.publishedAt ?? ""}
-              labels={{ placeholder: "اختر التاريخ", today: "اليوم", clear: "مسح", prev: "الشهر السابق", next: "الشهر التالي" }}
+              labels={{
+                placeholder: t("Pick a date", "اختر التاريخ"),
+                today: t("Today", "اليوم"),
+                clear: t("Clear", "مسح"),
+                prev: t("Previous month", "الشهر السابق"),
+                next: t("Next month", "الشهر التالي"),
+              }}
               className={inputCls}
             />
           </Field>
-          <Field label="دقائق القراءة">
+          <Field label={t("Reading minutes", "دقائق القراءة")}>
             <input name="readMinutes" type="number" min="1" max="120" dir="ltr" defaultValue={p?.readMinutes ?? 5} className={inputCls} />
           </Field>
-          <Field label="الوسوم" hint="افصل بينها بفاصلة" className="sm:col-span-2">
+          <Field label={t("Tags", "الوسوم")} hint={t("Separate with commas", "افصل بينها بفاصلة")} className="sm:col-span-2">
             <input name="tags" dir="auto" defaultValue={p?.tags} className={inputCls} />
           </Field>
-          <Field label="صورة الغلاف" className="sm:col-span-2">
+          <Field label={t("Cover photo", "صورة الغلاف")} className="sm:col-span-2">
             <ImageField name="cover" initial={p?.cover ?? ""} />
           </Field>
-          <Field label="المقتطف" className="sm:col-span-2">
+          <Field label={t("Excerpt", "المقتطف")} className="sm:col-span-2">
             <textarea name="excerpt" rows={3} dir="auto" defaultValue={p?.excerpt} className={inputCls} />
           </Field>
         </div>
         <div className="flex flex-wrap gap-6">
-          <Check2 name="published" label="منشور على الموقع" defaultChecked={p?.published ?? true} />
-          <Check2 name="featured" label="المقال المميز (أعلى المدونة)" defaultChecked={p?.featured ?? false} />
+          <Check2 name="published" label={t("Published on the website", "منشور على الموقع")} defaultChecked={p?.published ?? true} />
+          <Check2 name="featured" label={t("Featured article (top of the blog)", "المقال المميز (أعلى المدونة)")} defaultChecked={p?.featured ?? false} />
         </div>
       </div>
       <div className={panel}>
-        <h2 className="font-bold">نص المقال (إنجليزي)</h2>
+        <h2 className="font-bold">{t("Article text (English)", "نص المقال (إنجليزي)")}</h2>
         <BodyEditor name="body" initial={p?.body ?? ""} />
       </div>
       <ArabicPanel>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="العنوان (عربي)" className="sm:col-span-2">
+          <Field label={t("Title (Arabic)", "العنوان (عربي)")} className="sm:col-span-2">
             <input name="arTitle" dir="rtl" defaultValue={ar.title} className={inputCls} />
           </Field>
-          <Field label="التصنيف (عربي)">
+          <Field label={t("Category (Arabic)", "التصنيف (عربي)")}>
             <input name="arCategory" dir="rtl" defaultValue={ar.category} className={inputCls} />
           </Field>
-          <Field label="الكاتب (عربي)">
+          <Field label={t("Author (Arabic)", "الكاتب (عربي)")}>
             <input name="arAuthor" dir="rtl" defaultValue={ar.author} className={inputCls} />
           </Field>
-          <Field label="الوسوم (عربي)" hint="افصل بينها بفاصلة" className="sm:col-span-2">
+          <Field label={t("Tags (Arabic)", "الوسوم (عربي)")} hint={t("Separate with commas", "افصل بينها بفاصلة")} className="sm:col-span-2">
             <input name="arTags" dir="rtl" defaultValue={ar.tags} className={inputCls} />
           </Field>
-          <Field label="المقتطف (عربي)" className="sm:col-span-2">
+          <Field label={t("Excerpt (Arabic)", "المقتطف (عربي)")} className="sm:col-span-2">
             <textarea name="arExcerpt" rows={3} dir="rtl" defaultValue={ar.excerpt} className={inputCls} />
           </Field>
         </div>
-        <h3 className="font-semibold">نص المقال (عربي)</h3>
+        <h3 className="font-semibold">{t("Article text (Arabic)", "نص المقال (عربي)")}</h3>
         <BodyEditor name="arBody" initial={ar.body} />
       </ArabicPanel>
       <SaveBar state={state} pending={pending} dirty={dirty} saved={saved} preview={p ? `/blog/${p.slug}` : undefined} />
@@ -469,6 +493,7 @@ export function PostForm({ post, saved }: { post: AdminPost | null; saved?: bool
 }
 
 export function PostRowActions({ id, published }: { id: number; published: boolean }) {
+  const t = useT();
   const [value, setValue] = useOptimistic(published);
   const [, startTransition] = useTransition();
   return (
@@ -482,7 +507,7 @@ export function PostRowActions({ id, published }: { id: number; published: boole
           })
         }
       />
-      <DeleteButton label="حذف المقال" onDelete={() => deletePost(id)} />
+      <DeleteButton label={t("Delete article", "حذف المقال")} onDelete={() => deletePost(id)} />
     </div>
   );
 }
@@ -490,6 +515,7 @@ export function PostRowActions({ id, published }: { id: number; published: boole
 // ---------- Extra pages ----------
 
 export function PageForm({ page, saved }: { page: AdminPage | null; saved?: boolean }) {
+  const t = useT();
   const { state, pending, dirty, formProps } = useSave(savePage.bind(null, page?.id ?? null));
   const p = page;
   const ar = p?.ar ?? { title: "", subtitle: "", body: "" };
@@ -497,41 +523,41 @@ export function PageForm({ page, saved }: { page: AdminPage | null; saved?: bool
     <form {...formProps} className="grid gap-4">
       <div className={panel}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="العنوان">
+          <Field label={t("Title", "العنوان")}>
             <input name="title" required dir="auto" defaultValue={p?.title} className={inputCls} />
           </Field>
-          <Field label="الرابط (slug)" hint="تظهر الصفحة على /p/الرابط">
+          <Field label={t("Link (slug)", "الرابط (slug)")} hint={t("The page shows at /p/link", "تظهر الصفحة على /p/الرابط")}>
             <input name="slug" dir="ltr" defaultValue={p?.slug} className={inputCls} />
           </Field>
-          <Field label="العنوان الفرعي">
+          <Field label={t("Subtitle", "العنوان الفرعي")}>
             <input name="subtitle" dir="auto" defaultValue={p?.subtitle} className={inputCls} />
           </Field>
-          <Field label="الترتيب في القائمة">
+          <Field label={t("Menu order", "الترتيب في القائمة")}>
             <input name="sortOrder" type="number" dir="ltr" defaultValue={p?.sortOrder ?? 0} className={inputCls} />
           </Field>
-          <Field label="صورة الرأس" className="sm:col-span-2">
+          <Field label={t("Header photo", "صورة الرأس")} className="sm:col-span-2">
             <ImageField name="image" initial={p?.image ?? ""} />
           </Field>
         </div>
         <div className="flex flex-wrap gap-6">
-          <Check2 name="published" label="منشورة" defaultChecked={p?.published ?? true} />
-          <Check2 name="showInMenu" label="تظهر في القائمة العلوية" defaultChecked={p?.showInMenu ?? false} />
+          <Check2 name="published" label={t("Published", "منشورة")} defaultChecked={p?.published ?? true} />
+          <Check2 name="showInMenu" label={t("Show in the top menu", "تظهر في القائمة العلوية")} defaultChecked={p?.showInMenu ?? false} />
         </div>
       </div>
       <div className={panel}>
-        <h2 className="font-bold">المحتوى (إنجليزي)</h2>
+        <h2 className="font-bold">{t("Content (English)", "المحتوى (إنجليزي)")}</h2>
         <BodyEditor name="body" initial={p?.body ?? ""} />
       </div>
       <ArabicPanel>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="العنوان (عربي)">
+          <Field label={t("Title (Arabic)", "العنوان (عربي)")}>
             <input name="arTitle" dir="rtl" defaultValue={ar.title} className={inputCls} />
           </Field>
-          <Field label="العنوان الفرعي (عربي)">
+          <Field label={t("Subtitle (Arabic)", "العنوان الفرعي (عربي)")}>
             <input name="arSubtitle" dir="rtl" defaultValue={ar.subtitle} className={inputCls} />
           </Field>
         </div>
-        <h3 className="font-semibold">المحتوى (عربي)</h3>
+        <h3 className="font-semibold">{t("Content (Arabic)", "المحتوى (عربي)")}</h3>
         <BodyEditor name="arBody" initial={ar.body} />
       </ArabicPanel>
       <SaveBar state={state} pending={pending} dirty={dirty} saved={saved} preview={p ? `/p/${p.slug}` : undefined} />
@@ -540,7 +566,8 @@ export function PageForm({ page, saved }: { page: AdminPage | null; saved?: bool
 }
 
 export function DeletePageButton({ id }: { id: number }) {
-  return <DeleteButton label="حذف الصفحة" onDelete={() => deletePage(id)} />;
+  const t = useT();
+  return <DeleteButton label={t("Delete page", "حذف الصفحة")} onDelete={() => deletePage(id)} />;
 }
 
 // ---------- Inbox ----------
@@ -554,11 +581,12 @@ const bookingStatusStyle: Record<BookingStatus, string> = {
 };
 
 export function BookingStatusSelect({ id, status }: { id: number; status: BookingStatus }) {
+  const t = useT();
   const [value, setValue] = useOptimistic(status);
   const [, startTransition] = useTransition();
   return (
     <select
-      aria-label="حالة الحجز"
+      aria-label={t("Booking status", "حالة الحجز")}
       value={value}
       onChange={(e) => {
         const next = e.target.value as BookingStatus;
@@ -569,25 +597,27 @@ export function BookingStatusSelect({ id, status }: { id: number; status: Bookin
       }}
       className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-semibold outline-none ${bookingStatusStyle[value]}`}
     >
-      {Object.entries(bookingStatusLabels).map(([k, label]) => (
-        <option key={k} value={k} className="bg-surface text-foreground">{label}</option>
+      {BOOKING_STATUSES.map((k) => (
+        <option key={k} value={k} className="bg-surface text-foreground">{bookingStatusLabel(k, t)}</option>
       ))}
     </select>
   );
 }
 
 export function DeleteBookingButton({ id }: { id: number }) {
-  return <DeleteButton label="حذف الحجز" onDelete={() => deleteBooking(id)} />;
+  const t = useT();
+  return <DeleteButton label={t("Delete booking", "حذف الحجز")} onDelete={() => deleteBooking(id)} />;
 }
 
 export function MessageActions({ id, read, canDelete }: { id: number; read: boolean; canDelete: boolean }) {
+  const t = useT();
   const [value, setValue] = useOptimistic(read);
   const [, startTransition] = useTransition();
   return (
     <div className="flex items-center gap-1">
       <button
         type="button"
-        title={value ? "تعليم كغير مقروءة" : "تعليم كمقروءة"}
+        title={value ? t("Mark as unread", "تعليم كغير مقروءة") : t("Mark as read", "تعليم كمقروءة")}
         onClick={() =>
           startTransition(async () => {
             setValue(!value);
@@ -598,16 +628,18 @@ export function MessageActions({ id, read, canDelete }: { id: number; read: bool
       >
         {value ? <MailOpen className="size-4" /> : <Mail className="size-4 text-primary" />}
       </button>
-      {canDelete && <DeleteButton label="حذف الرسالة" onDelete={() => deleteMessage(id)} />}
+      {canDelete && <DeleteButton label={t("Delete message", "حذف الرسالة")} onDelete={() => deleteMessage(id)} />}
     </div>
   );
 }
 
 export function DeleteSubscriberButton({ id }: { id: number }) {
-  return <DeleteButton label="حذف المشترك" onDelete={() => deleteSubscriber(id)} />;
+  const t = useT();
+  return <DeleteButton label={t("Delete subscriber", "حذف المشترك")} onDelete={() => deleteSubscriber(id)} />;
 }
 
 export function CopyEmailsButton({ emails }: { emails: string[] }) {
+  const t = useT();
   const [done, setDone] = useState(false);
   return (
     <button
@@ -620,7 +652,7 @@ export function CopyEmailsButton({ emails }: { emails: string[] }) {
       className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold hover:bg-surface-2"
     >
       {done ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
-      {done ? "تم النسخ" : "نسخ كل العناوين"}
+      {done ? t("Copied", "تم النسخ") : t("Copy all emails", "نسخ كل العناوين")}
     </button>
   );
 }

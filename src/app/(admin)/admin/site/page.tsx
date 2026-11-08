@@ -1,14 +1,19 @@
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { getT } from "@/lib/admin/lang";
 import { PageHeader } from "@/components/ui";
 import { SITE_SECTIONS } from "@/lib/site/content";
 
-export const metadata = { title: "محتوى الموقع" };
+export const metadata = { title: "Website content" };
 
-export default function SiteContentPage() {
+export default async function SiteContentPage() {
+  const t = await getT();
   return (
     <>
-      <PageHeader title="محتوى الموقع" subtitle="عدّل كل نصوص وصور الموقع. التغييرات تظهر مباشرة بعد الحفظ." />
+      <PageHeader
+        title={t("Website content", "محتوى الموقع")}
+        subtitle={t("Edit all the website text and images, in English and Arabic. Changes show as soon as you save.", "عدّل كل نصوص وصور الموقع بالإنجليزية والعربية. التغييرات تظهر مباشرة بعد الحفظ.")}
+      />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {SITE_SECTIONS.map((s) => (
           <Link
@@ -17,10 +22,10 @@ export default function SiteContentPage() {
             className="group flex items-center gap-3 rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary"
           >
             <div className="flex-1">
-              <h2 className="font-bold group-hover:text-primary">{s.label}</h2>
-              <p className="mt-1 text-sm text-muted">{s.description}</p>
+              <h2 className="font-bold group-hover:text-primary">{t(...s.label)}</h2>
+              <p className="mt-1 text-sm text-muted">{t(...s.description)}</p>
             </div>
-            <ChevronLeft className="size-5 text-muted group-hover:text-primary" />
+            <ChevronRight className="size-5 text-muted group-hover:text-primary rtl:-scale-x-100" />
           </Link>
         ))}
       </div>

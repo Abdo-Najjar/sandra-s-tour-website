@@ -4,8 +4,9 @@ import { CopyEmailsButton, DeleteSubscriberButton } from "@/components/admin/sit
 import { requireUser } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { getSubscribers } from "@/lib/queries";
+import { getT } from "@/lib/admin/lang";
 
-export const metadata = { title: "المشتركون" };
+export const metadata = { title: "Subscribers" };
 
 export default function SubscribersPage() {
   return (
@@ -16,38 +17,38 @@ export default function SubscribersPage() {
 }
 
 async function SubscribersContent() {
-  const [me, list] = await Promise.all([requireUser(), getSubscribers()]);
+  const [me, list, t] = await Promise.all([requireUser(), getSubscribers(), getT()]);
   return (
     <>
       <PageHeader
-        title="المشتركون"
-        subtitle={`${list.length} مشترك في النشرة البريدية`}
+        title={t("Subscribers", "المشتركون")}
+        subtitle={t(`${list.length} newsletter subscribers`, `${list.length} مشترك في النشرة البريدية`)}
         action={list.length > 0 && <CopyEmailsButton emails={list.map((s) => s.email)} />}
       />
       {list.length === 0 ? (
-        <Card className="py-12 text-center text-muted">لا يوجد مشتركون بعد.</Card>
+        <Card className="py-12 text-center text-muted">{t("No subscribers yet.", "لا يوجد مشتركون بعد.")}</Card>
       ) : (
         <Card className="overflow-hidden p-0">
           <table className="rtable w-full text-sm">
             <thead className="bg-surface-2 text-muted">
               <tr>
-                <th className="px-5 py-3 text-right font-medium">البريد</th>
-                <th className="px-5 py-3 text-right font-medium">تاريخ الاشتراك</th>
+                <th className="px-5 py-3 text-start font-medium">{t("Email", "البريد")}</th>
+                <th className="px-5 py-3 text-start font-medium">{t("Subscribed", "تاريخ الاشتراك")}</th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
             <tbody>
               {list.map((s) => (
                 <tr key={s.id} className="border-t border-border">
-                  <td className="px-5 py-3" dir="ltr">
-                    <a href={`mailto:${s.email}`} className="hover:text-primary">
+                  <td className="px-5 py-3">
+                    <a dir="ltr" href={`mailto:${s.email}`} className="hover:text-primary">
                       {s.email}
                     </a>
                   </td>
-                  <td data-label="الاشتراك" className="px-5 py-3 text-muted">
+                  <td data-label={t("Subscribed", "الاشتراك")} className="px-5 py-3 text-muted">
                     <span dir="ltr">{formatDate(s.createdAt)}</span>
                   </td>
-                  <td className="rtable-end px-5 py-3 text-left">{me.role === "admin" && <DeleteSubscriberButton id={s.id} />}</td>
+                  <td className="rtable-end px-5 py-3 text-end">{me.role === "admin" && <DeleteSubscriberButton id={s.id} />}</td>
                 </tr>
               ))}
             </tbody>

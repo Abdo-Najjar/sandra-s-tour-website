@@ -6,7 +6,7 @@ import { NewsletterForm } from "./forms";
 
 export async function SiteFooter({ site, extraLinks }: { site: SiteContent; extraLinks: { slug: string; title: string }[] }) {
   const { general, contact, footer } = site;
-  const { t } = await getUi();
+  const { t, lang } = await getUi();
   return (
     <footer className="w-full border-t border-antique-gold/20 bg-primary pt-space-3xl pb-space-xl text-surface-container-high">
       <div className="mx-auto w-full max-w-[1280px] px-margin-mobile md:px-margin">
@@ -95,7 +95,21 @@ export async function SiteFooter({ site, extraLinks }: { site: SiteContent; extr
         </div>
 
         <div className="flex flex-col items-center justify-between gap-space-md border-t border-white/10 pt-space-lg text-label-md text-[#c4c6cf] md:flex-row">
-          <p className="text-center md:text-start">{footer.copyright}</p>
+          <div className="flex flex-col items-center gap-1 md:items-start">
+            <p className="text-center md:text-start">{footer.copyright}</p>
+            {/* Developer credit */}
+            <a
+              href={whatsappLink(DEVELOPER.whatsapp)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block py-1 text-[#9aa1ad] transition-colors hover:text-antique-gold"
+            >
+              {lang === "ar" ? "تصميم وتطوير" : "Designed & developed by"}{" "}
+              <strong className="font-semibold text-antique-gold" dir="ltr">
+                {DEVELOPER.name}
+              </strong>
+            </a>
+          </div>
           <div className="flex flex-wrap items-center justify-center gap-space-md">
             {footer.bottomLinks.map((l) => (
               <SmartLink key={l.label} href={l.href} className="inline-block py-1.5 transition-colors hover:text-antique-gold">
@@ -108,6 +122,9 @@ export async function SiteFooter({ site, extraLinks }: { site: SiteContent; extr
     </footer>
   );
 }
+
+// Shown under the copyright line; links to the developer's WhatsApp.
+const DEVELOPER = { name: "Abdo Najjar", whatsapp: "+972598414952" };
 
 export function WhatsAppButton({ phone, label }: { phone: string; label: string }) {
   if (!phone) return null;

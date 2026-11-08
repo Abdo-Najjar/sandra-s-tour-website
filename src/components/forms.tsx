@@ -8,7 +8,9 @@ import {
   createUser,
   type ActionState,
 } from "@/lib/actions";
-import { roleLabels } from "@/lib/format";
+import { roleLabel } from "@/lib/format";
+import { USER_ROLES } from "@/db/schema";
+import { useT } from "@/components/admin/admin-lang";
 
 export const inputCls =
   "w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-primary";
@@ -62,6 +64,7 @@ function DialogForm({
   action: Action;
   children: React.ReactNode;
 }) {
+  const t = useT();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { state, pending, formRef, onSubmit } = useFormAction(action, (form) => {
     form.reset();
@@ -81,7 +84,7 @@ function DialogForm({
         <form ref={formRef} onSubmit={onSubmit} className="grid gap-4 p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">{title}</h2>
-            <button type="button" onClick={() => dialogRef.current?.close()} aria-label="إغلاق" className="text-muted">
+            <button type="button" onClick={() => dialogRef.current?.close()} aria-label={t("Close", "إغلاق")} className="text-muted">
               <X className="size-5" />
             </button>
           </div>
@@ -89,10 +92,10 @@ function DialogForm({
           <FormError state={state} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => dialogRef.current?.close()}>
-              إلغاء
+              {t("Cancel", "إلغاء")}
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? "جارٍ الحفظ..." : "حفظ"}
+              {pending ? t("Saving…", "جارٍ الحفظ...") : t("Save", "حفظ")}
             </Button>
           </div>
         </form>
@@ -102,22 +105,23 @@ function DialogForm({
 }
 
 export function NewUserButton() {
+  const t = useT();
   return (
-    <DialogForm trigger="مستخدم جديد" title="إضافة مستخدم" action={createUser}>
-      <Field label="الاسم">
+    <DialogForm trigger={t("New user", "مستخدم جديد")} title={t("Add a user", "إضافة مستخدم")} action={createUser}>
+      <Field label={t("Name", "الاسم")}>
         <input name="name" required className={inputCls} />
       </Field>
-      <Field label="البريد الإلكتروني">
+      <Field label={t("Email", "البريد الإلكتروني")}>
         <input name="email" type="email" required dir="ltr" className={inputCls} />
       </Field>
-      <Field label="الدور">
+      <Field label={t("Role", "الدور")}>
         <select name="role" defaultValue="user" className={inputCls}>
-          {Object.entries(roleLabels).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
+          {USER_ROLES.map((role) => (
+            <option key={role} value={role}>{roleLabel(role, t)}</option>
           ))}
         </select>
       </Field>
-      <Field label="كلمة المرور (مطلوبة للمدير والمحرر)">
+      <Field label={t("Password (needed for admins and editors)", "كلمة المرور (مطلوبة للمدير والمحرر)")}>
         <input name="password" type="password" autoComplete="new-password" minLength={8} dir="ltr" className={inputCls} />
       </Field>
     </DialogForm>
@@ -125,6 +129,7 @@ export function NewUserButton() {
 }
 
 export function ChangePasswordForm() {
+  const t = useT();
   const [done, setDone] = useState(false);
   const { state, pending, formRef, onSubmit } = useFormAction(changePassword, (form) => {
     form.reset();
@@ -140,27 +145,27 @@ export function ChangePasswordForm() {
       }}
       className="grid max-w-3xl gap-4 rounded-xl border border-border bg-surface p-5"
     >
-      <h2 className="font-bold">تغيير كلمة المرور</h2>
+      <h2 className="font-bold">{t("Change password", "تغيير كلمة المرور")}</h2>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="كلمة المرور الحالية">
+        <Field label={t("Current password", "كلمة المرور الحالية")}>
           <input name="current" type="password" autoComplete="current-password" required dir="ltr" className={inputCls} />
         </Field>
-        <Field label="كلمة المرور الجديدة">
+        <Field label={t("New password", "كلمة المرور الجديدة")}>
           <input name="next" type="password" autoComplete="new-password" minLength={8} required dir="ltr" className={inputCls} />
         </Field>
-        <Field label="تأكيد كلمة المرور">
+        <Field label={t("Confirm password", "تأكيد كلمة المرور")}>
           <input name="confirm" type="password" autoComplete="new-password" minLength={8} required dir="ltr" className={inputCls} />
         </Field>
       </div>
       <FormError state={state} />
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "جارٍ الحفظ..." : "تغيير كلمة المرور"}
+          {pending ? t("Saving…", "جارٍ الحفظ...") : t("Change password", "تغيير كلمة المرور")}
         </Button>
         {done && (
           <span className="flex items-center gap-1 text-sm font-medium text-success">
             <Check className="size-4" />
-            تم تغيير كلمة المرور، وتم تسجيل خروج الأجهزة الأخرى
+            {t("Password changed. Other devices were signed out.", "تم تغيير كلمة المرور، وتم تسجيل خروج الأجهزة الأخرى")}
           </span>
         )}
       </div>

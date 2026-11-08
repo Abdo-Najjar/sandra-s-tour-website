@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { CalendarCheck, ExternalLink, Mail, Map as MapIcon, Newspaper, PanelsTopLeft, Plus, UsersRound, type LucideIcon } from "lucide-react";
-import { bookingStatusLabels } from "@/lib/site/labels";
+import { bookingStatusLabel } from "@/lib/site/labels";
+import { getT } from "@/lib/admin/lang";
 import type { BookingStatus } from "@/db/schema";
 import { Card, ContentSkeleton, PageHeader } from "@/components/ui";
 import { formatDate, formatNumber } from "@/lib/format";
@@ -24,7 +25,8 @@ const bookingStyle: Record<BookingStatus, string> = {
 };
 
 async function OverviewContent() {
-  const [me, stats, bookings, counts, messages] = await Promise.all([
+  const [t, me, stats, bookings, counts, messages] = await Promise.all([
+    getT(),
     requireUser(),
     getWebsiteStats(),
     getBookings(),
@@ -33,23 +35,26 @@ async function OverviewContent() {
   ]);
 
   const tiles: { label: string; value: number; note: string; href: string; icon: LucideIcon; highlight?: boolean }[] = [
-    { label: "حجوزات جديدة", value: stats.newBookings, note: `${formatNumber(counts.confirmed)} مؤكدة من ${formatNumber(counts.all)}`, href: "/admin/bookings?status=new", icon: CalendarCheck, highlight: stats.newBookings > 0 },
-    { label: "رسائل غير مقروءة", value: stats.unreadMessages, note: `${formatNumber(messages.length)} رسالة وطلب شراكة`, href: "/admin/messages", icon: Mail, highlight: stats.unreadMessages > 0 },
-    { label: "جولات منشورة", value: stats.tours, note: "تظهر في صفحة الجولات", href: "/admin/tours", icon: MapIcon },
-    { label: "مقالات منشورة", value: stats.posts, note: `${formatNumber(stats.subscribers)} مشترك في النشرة`, href: "/admin/blog", icon: Newspaper },
+    { label: t("New bookings", "حجوزات جديدة"), value: stats.newBookings, note: t(`${formatNumber(counts.confirmed)} confirmed of ${formatNumber(counts.all)}`, `${formatNumber(counts.confirmed)} مؤكدة من ${formatNumber(counts.all)}`), href: "/admin/bookings?status=new", icon: CalendarCheck, highlight: stats.newBookings > 0 },
+    { label: t("Unread messages", "رسائل غير مقروءة"), value: stats.unreadMessages, note: t(`${formatNumber(messages.length)} messages and partner requests`, `${formatNumber(messages.length)} رسالة وطلب شراكة`), href: "/admin/messages", icon: Mail, highlight: stats.unreadMessages > 0 },
+    { label: t("Published tours", "جولات منشورة"), value: stats.tours, note: t("Shown on the tours page", "تظهر في صفحة الجولات"), href: "/admin/tours", icon: MapIcon },
+    { label: t("Published articles", "مقالات منشورة"), value: stats.posts, note: t(`${formatNumber(stats.subscribers)} newsletter subscribers`, `${formatNumber(stats.subscribers)} مشترك في النشرة`), href: "/admin/blog", icon: Newspaper },
   ];
 
   const quick: { label: string; href: string; icon: LucideIcon; external?: boolean }[] = [
-    { label: "جولة جديدة", href: "/admin/tours/new", icon: Plus },
-    { label: "مقال جديد", href: "/admin/blog/new", icon: Plus },
-    { label: "تعديل نصوص الموقع", href: "/admin/site", icon: PanelsTopLeft },
-    { label: "المشتركون", href: "/admin/subscribers", icon: UsersRound },
-    { label: "فتح الموقع", href: "/", icon: ExternalLink, external: true },
+    { label: t("New tour", "جولة جديدة"), href: "/admin/tours/new", icon: Plus },
+    { label: t("New article", "مقال جديد"), href: "/admin/blog/new", icon: Plus },
+    { label: t("Edit website text", "تعديل نصوص الموقع"), href: "/admin/site", icon: PanelsTopLeft },
+    { label: t("Subscribers", "المشتركون"), href: "/admin/subscribers", icon: UsersRound },
+    { label: t("Open website", "فتح الموقع"), href: "/", icon: ExternalLink, external: true },
   ];
 
   return (
     <>
-      <PageHeader title={`مرحباً ${me.name.split(" ")[0]} 👋`} subtitle="ملخص حجوزات ورسائل موقع Syria Guide Tours" />
+      <PageHeader
+        title={t(`Hello ${me.name.split(" ")[0]} 👋`, `مرحباً ${me.name.split(" ")[0]} 👋`)}
+        subtitle={t("Bookings and messages from the Syria Guide Tours website", "ملخص حجوزات ورسائل موقع Syria Guide Tours")}
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {tiles.map((t) => (
@@ -89,11 +94,11 @@ async function OverviewContent() {
       <div className="mt-6 grid gap-4 xl:grid-cols-5">
         <Card className="overflow-hidden p-0 xl:col-span-3">
           <div className="flex items-center justify-between p-5 pb-3">
-            <h2 className="font-bold">آخر الحجوزات</h2>
-            <Link href="/admin/bookings" className="text-sm font-semibold text-accent hover:underline">عرض الكل</Link>
+            <h2 className="font-bold">{t("Latest bookings", "آخر الحجوزات")}</h2>
+            <Link href="/admin/bookings" className="text-sm font-semibold text-accent hover:underline">{t("View all", "عرض الكل")}</Link>
           </div>
           {bookings.length === 0 ? (
-            <p className="border-t border-border px-5 py-10 text-center text-sm text-muted">لا توجد حجوزات بعد.</p>
+            <p className="border-t border-border px-5 py-10 text-center text-sm text-muted">{t("No bookings yet.", "لا توجد حجوزات بعد.")}</p>
           ) : (
             <ul>
               {bookings.slice(0, 6).map((b) => (
@@ -101,10 +106,10 @@ async function OverviewContent() {
                   <div className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft font-bold text-primary">{b.name.trim()[0]?.toUpperCase()}</div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold" dir="auto">{b.name}</div>
-                    <div className="truncate text-xs text-muted" dir="auto">{b.tourTitle || "رحلة مخصصة"}</div>
+                    <div className="truncate text-xs text-muted" dir="auto">{b.tourTitle || t("Custom trip", "رحلة مخصصة")}</div>
                   </div>
-                  <div className="shrink-0 text-left">
-                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${bookingStyle[b.status]}`}>{bookingStatusLabels[b.status]}</span>
+                  <div className="shrink-0 text-end">
+                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${bookingStyle[b.status]}`}>{bookingStatusLabel(b.status, t)}</span>
                     <div className="mt-1 text-xs text-muted" dir="ltr">{formatDate(b.createdAt)}</div>
                   </div>
                 </li>
@@ -115,17 +120,17 @@ async function OverviewContent() {
 
         <Card className="overflow-hidden p-0 xl:col-span-2">
           <div className="flex items-center justify-between p-5 pb-3">
-            <h2 className="font-bold">آخر الرسائل</h2>
-            <Link href="/admin/messages" className="text-sm font-semibold text-accent hover:underline">عرض الكل</Link>
+            <h2 className="font-bold">{t("Latest messages", "آخر الرسائل")}</h2>
+            <Link href="/admin/messages" className="text-sm font-semibold text-accent hover:underline">{t("View all", "عرض الكل")}</Link>
           </div>
           {messages.length === 0 ? (
-            <p className="border-t border-border px-5 py-10 text-center text-sm text-muted">لا توجد رسائل بعد.</p>
+            <p className="border-t border-border px-5 py-10 text-center text-sm text-muted">{t("No messages yet.", "لا توجد رسائل بعد.")}</p>
           ) : (
             <ul>
               {messages.slice(0, 5).map((m) => (
                 <li key={m.id} className="border-t border-border px-5 py-3 text-sm">
                   <div className="flex items-center gap-2">
-                    {!m.read && <span className="size-2 shrink-0 rounded-full bg-accent" aria-label="غير مقروءة" />}
+                    {!m.read && <span className="size-2 shrink-0 rounded-full bg-accent" aria-label={t("Unread", "غير مقروءة")} />}
                     <span className={`min-w-0 flex-1 truncate ${m.read ? "" : "font-semibold"}`} dir="auto">{m.name}</span>
                     <span className="shrink-0 text-xs text-muted" dir="ltr">{formatDate(m.createdAt)}</span>
                   </div>

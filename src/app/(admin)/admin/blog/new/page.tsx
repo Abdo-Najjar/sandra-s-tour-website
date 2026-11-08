@@ -1,17 +1,16 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { BackLink } from "@/components/admin/new-link";
+import { getT } from "@/lib/admin/lang";
 import { PageHeader } from "@/components/ui";
 import { PostForm } from "@/components/admin/site-forms";
 
-export const metadata = { title: "مقال جديد" };
+export const metadata = { title: "New article" };
 
-export default function NewPage() {
+export default async function NewPage() {
+  const t = await getT();
   return (
     <>
-      <Link href="/admin/blog" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-        <ChevronRight className="size-4" /> المدونة
-      </Link>
-      <PageHeader title="مقال جديد" />
+      <BackLink href="/admin/blog" label={t("Blog", "المدونة")} />
+      <PageHeader title={t("New article", "مقال جديد")} />
       <PostForm post={null} />
     </>
   );

@@ -6,13 +6,19 @@ import { NewLink } from "@/components/admin/new-link";
 import { PostRowActions } from "@/components/admin/site-forms";
 import { getAdminPosts } from "@/lib/queries";
 import { pick } from "@/lib/site/translatable";
+import { getAdminLang, getT } from "@/lib/admin/lang";
 
-export const metadata = { title: "المدونة" };
+export const metadata = { title: "Blog" };
 
-export default function BlogAdminPage() {
+export default async function BlogAdminPage() {
+  const t = await getT();
   return (
     <>
-      <PageHeader title="المدونة" subtitle="اكتب المقالات وعدّلها وانشرها" action={<NewLink href="/admin/blog/new" label="مقال جديد" />} />
+      <PageHeader
+        title={t("Blog", "المدونة")}
+        subtitle={t("Write, edit and publish articles", "اكتب المقالات وعدّلها وانشرها")}
+        action={<NewLink href="/admin/blog/new" label={t("New article", "مقال جديد")} />}
+      />
       <Suspense fallback={<ContentSkeleton />}>
         <PostsList />
       </Suspense>
@@ -21,17 +27,17 @@ export default function BlogAdminPage() {
 }
 
 async function PostsList() {
-  const posts = await getAdminPosts();
-  if (!posts.length) return <Card className="py-12 text-center text-muted">لا توجد مقالات بعد.</Card>;
+  const [posts, lang, t] = await Promise.all([getAdminPosts(), getAdminLang(), getT()]);
+  if (!posts.length) return <Card className="py-12 text-center text-muted">{t("No articles yet.", "لا توجد مقالات بعد.")}</Card>;
   return (
     <Card className="overflow-hidden p-0">
       <div className="overflow-x-auto">
         <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
-              <th className="px-5 py-3 text-right font-medium">المقال</th>
-              <th className="px-5 py-3 text-right font-medium">التصنيف</th>
-              <th className="px-5 py-3 text-right font-medium">التاريخ</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Article", "المقال")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Category", "التصنيف")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Date", "التاريخ")}</th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
@@ -45,14 +51,14 @@ async function PostsList() {
                     <div>
                       <div className="flex items-center gap-1.5 font-semibold" dir="auto">
                         {p.featured && <Star className="size-3.5 shrink-0 fill-current text-warning" />}
-                        {pick(p.title, "ar")}
+                        {pick(p.title, lang)}
                       </div>
-                      <div className="text-xs text-muted" dir="auto">{pick(p.author, "ar")}</div>
+                      <div className="text-xs text-muted" dir="auto">{pick(p.author, lang)}</div>
                     </div>
                   </Link>
                 </td>
-                <td data-label="التصنيف" className="px-5 py-3" dir="auto">{pick(p.category, "ar")}</td>
-                <td data-label="التاريخ" className="px-5 py-3 whitespace-nowrap text-muted"><span dir="ltr">{p.publishedAt}</span></td>
+                <td data-label={t("Category", "التصنيف")} className="px-5 py-3" dir="auto">{pick(p.category, lang)}</td>
+                <td data-label={t("Date", "التاريخ")} className="px-5 py-3 whitespace-nowrap text-muted"><span dir="ltr">{p.publishedAt}</span></td>
                 <td className="rtable-end px-5 py-3">
                   <div className="flex justify-end">
                     <PostRowActions id={p.id} published={p.published} />

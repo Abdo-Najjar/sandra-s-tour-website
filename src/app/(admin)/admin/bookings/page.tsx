@@ -3,21 +3,27 @@ import Link from "next/link";
 import { Mail, MessageCircle, Phone } from "lucide-react";
 import { Card, ContentSkeleton, PageHeader } from "@/components/ui";
 import { BookingStatusSelect, DeleteBookingButton } from "@/components/admin/site-forms";
-import { bookingStatusLabels } from "@/lib/site/labels";
+import { bookingStatusLabel } from "@/lib/site/labels";
+import { getT } from "@/lib/admin/lang";
 import { BOOKING_STATUSES, type BookingStatus } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { getBookingCounts, getBookings } from "@/lib/queries";
 import { whatsappLink } from "@/lib/site/shape";
 
-export const metadata = { title: "الحجوزات" };
+export const metadata = { title: "Bookings" };
 
-const sources: Record<string, string> = { contact: "صفحة التواصل", tour: "صفحة جولة", guide: "صفحة المرشدة" };
+const sources: Record<string, [en: string, ar: string]> = {
+  contact: ["Contact page", "صفحة التواصل"],
+  tour: ["Tour page", "صفحة جولة"],
+  guide: ["Guide page", "صفحة المرشدة"],
+};
 
-export default function BookingsPage(props: PageProps<"/admin/bookings">) {
+export default async function BookingsPage(props: PageProps<"/admin/bookings">) {
+  const t = await getT();
   return (
     <>
-      <PageHeader title="الحجوزات" subtitle="طلبات الحجز القادمة من نماذج الموقع" />
+      <PageHeader title={t("Bookings", "الحجوزات")} subtitle={t("Booking requests from the website forms", "طلبات الحجز القادمة من نماذج الموقع")} />
       <Suspense fallback={<ContentSkeleton />}>
         <BookingsContent {...props} />
       </Suspense>
@@ -28,10 +34,10 @@ export default function BookingsPage(props: PageProps<"/admin/bookings">) {
 async function BookingsContent({ searchParams }: PageProps<"/admin/bookings">) {
   const raw = (await searchParams).status;
   const status = BOOKING_STATUSES.includes(raw as BookingStatus) ? (raw as BookingStatus) : undefined;
-  const [me, list, counts] = await Promise.all([requireUser(), getBookings(status), getBookingCounts()]);
+  const [me, list, counts, t] = await Promise.all([requireUser(), getBookings(status), getBookingCounts(), getT()]);
   const tabs: [string, string, number][] = [
-    ["", "الكل", counts.all],
-    ...BOOKING_STATUSES.map((s): [string, string, number] => [s, bookingStatusLabels[s], counts[s]]),
+    ["", t("All", "الكل"), counts.all],
+    ...BOOKING_STATUSES.map((s): [string, string, number] => [s, bookingStatusLabel(s, t), counts[s]]),
   ];
 
   return (
@@ -50,33 +56,39 @@ async function BookingsContent({ searchParams }: PageProps<"/admin/bookings">) {
         ))}
       </div>
 
-      {list.length === 0 && <Card className="py-12 text-center text-muted">لا توجد حجوزات هنا.</Card>}
+      {list.length === 0 && <Card className="py-12 text-center text-muted">{t("No bookings here.", "لا توجد حجوزات هنا.")}</Card>}
 
       <div className="grid gap-3">
         {list.map((b) => (
           <Card key={b.id}>
             <div className="flex flex-wrap items-start gap-3">
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-bold" dir="auto">{b.name}</h2>
                   <BookingStatusSelect key={b.status} id={b.id} status={b.status} />
                 </div>
-                <div className="mt-1 text-sm text-muted" dir="auto">
-                  {b.tourTitle || "رحلة مخصصة / غير محددة"}
+                <div className="mt-1 text-start text-sm text-muted">
+                  {b.tourTitle || t("Custom / not chosen yet", "رحلة مخصصة / غير محددة")}
                   {b.tourClass && ` · ${b.tourClass}`}
                 </div>
               </div>
-              <div className="text-left text-xs text-muted">
+              <div className="text-end text-xs text-muted">
                 <div dir="ltr">{formatDate(b.createdAt)}</div>
-                <div>{sources[b.source] ?? b.source}</div>
+                <div>{sources[b.source] ? t(...sources[b.source]) : b.source}</div>
               </div>
             </div>
 
             <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              {b.arrivalDate && <Info label="الوصول" value={b.arrivalDate} />}
-              <Info label="الأشخاص" value={`${b.adults} بالغ${b.children ? ` + ${b.children} طفل` : ""}`} />
-              {b.nationality && <Info label="الجنسية" value={b.nationality} />}
-              {b.flexibility && <Info label="المرونة" value={b.flexibility} />}
+              {b.arrivalDate && <Info label={t("Arrival", "الوصول")} value={b.arrivalDate} />}
+              <Info
+                label={t("Guests", "الأشخاص")}
+                value={t(
+                  `${b.adults} adult${b.adults === 1 ? "" : "s"}${b.children ? ` + ${b.children} child${b.children === 1 ? "" : "ren"}` : ""}`,
+                  `${b.adults} بالغ${b.children ? ` + ${b.children} طفل` : ""}`,
+                )}
+              />
+              {b.nationality && <Info label={t("Nationality", "الجنسية")} value={b.nationality} />}
+              {b.flexibility && <Info label={t("Flexibility", "المرونة")} value={b.flexibility} />}
             </dl>
             {b.note && (
               <p className="mt-3 rounded-lg bg-surface-2 p-3 text-sm whitespace-pre-line" dir="auto">
@@ -93,7 +105,7 @@ async function BookingsContent({ searchParams }: PageProps<"/admin/bookings">) {
                     rel="noopener"
                     className="inline-flex items-center gap-1.5 rounded-lg bg-success-soft px-3 py-1.5 font-medium text-success"
                   >
-                    <MessageCircle className="size-4" /> واتساب
+                    <MessageCircle className="size-4" /> WhatsApp
                   </a>
                   <a href={`tel:${b.phone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5" dir="ltr">
                     <Phone className="size-4" /> {b.phone}
@@ -106,7 +118,7 @@ async function BookingsContent({ searchParams }: PageProps<"/admin/bookings">) {
                 </a>
               )}
               {me.role === "admin" && (
-                <div className="mr-auto">
+                <div className="ms-auto">
                   <DeleteBookingButton id={b.id} />
                 </div>
               )}

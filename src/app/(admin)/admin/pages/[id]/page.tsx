@@ -1,20 +1,19 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { BackLink } from "@/components/admin/new-link";
+import { getT } from "@/lib/admin/lang";
 import { ContentSkeleton, PageHeader } from "@/components/ui";
 import { PageForm } from "@/components/admin/site-forms";
 import { getAdminPage } from "@/lib/queries";
 
-export const metadata = { title: "تعديل صفحة" };
+export const metadata = { title: "Edit page" };
 
-export default function EditPage(props: PageProps<"/admin/pages/[id]">) {
+export default async function EditPage(props: PageProps<"/admin/pages/[id]">) {
+  const t = await getT();
   return (
     <>
-      <Link href="/admin/pages" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-        <ChevronRight className="size-4" /> صفحات إضافية
-      </Link>
-      <PageHeader title="تعديل صفحة" />
+      <BackLink href="/admin/pages" label={t("Extra pages", "صفحات إضافية")} />
+      <PageHeader title={t("Edit page", "تعديل صفحة")} />
       <Suspense fallback={<ContentSkeleton />}>
         <Content {...props} />
       </Suspense>

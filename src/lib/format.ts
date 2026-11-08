@@ -1,10 +1,13 @@
 import type { UserRole } from "@/db/schema";
+import type { T } from "@/lib/admin/i18n";
 
-export const roleLabels: Record<UserRole, string> = {
-  admin: "مدير",
-  editor: "محرر",
-  user: "مستخدم",
+const roleNames: Record<UserRole, [en: string, ar: string]> = {
+  admin: ["Admin", "مدير"],
+  editor: ["Editor", "محرر"],
+  user: ["User", "مستخدم"],
 };
+
+export const roleLabel = (role: UserRole, t: T) => t(...roleNames[role]);
 
 export function formatMoney(value: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);

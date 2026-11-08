@@ -6,13 +6,19 @@ import { TourRowActions } from "@/components/admin/site-forms";
 import { formatMoney } from "@/lib/format";
 import { getAdminTours } from "@/lib/queries";
 import { pick } from "@/lib/site/translatable";
+import { getAdminLang, getT } from "@/lib/admin/lang";
 
-export const metadata = { title: "الجولات" };
+export const metadata = { title: "Tours" };
 
-export default function ToursPage() {
+export default async function ToursPage() {
+  const t = await getT();
   return (
     <>
-      <PageHeader title="الجولات" subtitle="أضف جولات جديدة وعدّل أسعارها وصورها وبرامجها" action={<NewLink href="/admin/tours/new" label="جولة جديدة" />} />
+      <PageHeader
+        title={t("Tours", "الجولات")}
+        subtitle={t("Add tours and edit their prices, photos and itineraries", "أضف جولات جديدة وعدّل أسعارها وصورها وبرامجها")}
+        action={<NewLink href="/admin/tours/new" label={t("New tour", "جولة جديدة")} />}
+      />
       <Suspense fallback={<ContentSkeleton />}>
         <ToursList />
       </Suspense>
@@ -21,8 +27,9 @@ export default function ToursPage() {
 }
 
 async function ToursList() {
-  const tours = await getAdminTours();
-  if (!tours.length) return <Card className="py-12 text-center text-muted">لا توجد جولات بعد. أضف أول جولة.</Card>;
+  const [tours, lang, t] = await Promise.all([getAdminTours(), getAdminLang(), getT()]);
+  const other = lang === "ar" ? "en" : "ar";
+  if (!tours.length) return <Card className="py-12 text-center text-muted">{t("No tours yet. Add the first one.", "لا توجد جولات بعد. أضف أول جولة.")}</Card>;
 
   return (
     <Card className="overflow-hidden p-0">
@@ -30,32 +37,34 @@ async function ToursList() {
         <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
-              <th className="px-5 py-3 text-right font-medium">الجولة</th>
-              <th className="px-5 py-3 text-right font-medium">المدة</th>
-              <th className="px-5 py-3 text-right font-medium">السعر</th>
-              <th className="px-5 py-3 text-right font-medium">الحجوزات</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Tour", "الجولة")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Length", "المدة")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Price", "السعر")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Bookings", "الحجوزات")}</th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
           <tbody>
-            {tours.map((t) => (
-              <tr key={t.id} className="border-t border-border">
+            {tours.map((tour) => (
+              <tr key={tour.id} className="border-t border-border">
                 <td className="px-5 py-3">
-                  <Link href={`/admin/tours/${t.id}`} className="flex items-center gap-3 hover:text-primary">
+                  <Link href={`/admin/tours/${tour.id}`} className="flex items-center gap-3 hover:text-primary">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={t.image || "/site/logo.png"} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
+                    <img src={tour.image || "/site/logo.png"} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
                     <div>
-                      <div className="font-semibold" dir="auto">{pick(t.title, "ar")}</div>
-                      <div className="text-xs text-muted" dir="ltr">{pick(t.title, "en")}</div>
+                      <div className="font-semibold" dir="auto">{pick(tour.title, lang)}</div>
+                      <div className="text-xs text-muted" dir="auto">{pick(tour.title, other)}</div>
                     </div>
                   </Link>
                 </td>
-                <td data-label="المدة" className="px-5 py-3 whitespace-nowrap">{t.durationDays} {t.durationDays === 1 ? "يوم" : "أيام"}</td>
-                <td data-label="السعر" className="px-5 py-3 font-semibold">{formatMoney(t.price)}</td>
-                <td data-label="الحجوزات" className="px-5 py-3">{t.bookings}</td>
+                <td data-label={t("Length", "المدة")} className="px-5 py-3 whitespace-nowrap">
+                  {tour.durationDays} {tour.durationDays === 1 ? t("day", "يوم") : t("days", "أيام")}
+                </td>
+                <td data-label={t("Price", "السعر")} className="px-5 py-3 font-semibold">{formatMoney(tour.price)}</td>
+                <td data-label={t("Bookings", "الحجوزات")} className="px-5 py-3">{tour.bookings}</td>
                 <td className="rtable-end px-5 py-3">
                   <div className="flex justify-end">
-                    <TourRowActions id={t.id} featured={t.featured} published={t.published} />
+                    <TourRowActions id={tour.id} featured={tour.featured} published={tour.published} />
                   </div>
                 </td>
               </tr>

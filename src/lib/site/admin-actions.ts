@@ -16,6 +16,7 @@ import {
   type BookingStatus,
 } from "@/db";
 import { authorize } from "@/lib/auth";
+import { getT } from "@/lib/admin/lang";
 import type { ActionState } from "@/lib/actions";
 import { defaultContent, defaultSiteContent, SITE_ROW_ID, siteDataBoth, type SiteSection } from "./content";
 import { isLang, type Lang } from "./i18n";
@@ -28,7 +29,6 @@ import { tr } from "./translatable";
 // of them. Each change expires the matching public cache tag so the website
 // shows it right away.
 
-const NO_PERMISSION = "ليس لديك صلاحية لهذا الإجراء";
 const str = (fd: FormData, key: string, max = 500) => String(fd.get(key) ?? "").trim().slice(0, max);
 const bool = (fd: FormData, key: string) => fd.get(key) === "on" || fd.get(key) === "true";
 const num = (fd: FormData, key: string) => {
@@ -64,11 +64,12 @@ async function uniqueSlug(table: typeof tours | typeof posts | typeof pages, wan
 // ---------- Site content ----------
 
 export async function saveSiteSection(section: SiteSection, lang: Lang, _: ActionState, fd: FormData): Promise<ActionState> {
-  if (!(await authorize())) return { error: NO_PERMISSION };
-  if (!(section in defaultSiteContent) || !isLang(lang)) return { error: "قسم غير معروف" };
+  const t = await getT();
+  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
+  if (!(section in defaultSiteContent) || !isLang(lang)) return { error: t("Unknown section", "قسم غير معروف") };
 
   const value = parseJson(fd.get("data"));
-  if (value === undefined) return { error: "تعذر قراءة البيانات" };
+  if (value === undefined) return { error: t("Couldn't read the form data", "تعذر قراءة البيانات") };
 
   const id = SITE_ROW_ID;
   const row = await db.query.site.findFirst({ where: eq(site.id, id) });
@@ -101,14 +102,15 @@ export async function resetSiteSection(section: SiteSection, lang: Lang) {
 // ---------- Tours ----------
 
 export async function saveTour(id: number | null, _: ActionState, fd: FormData): Promise<ActionState> {
-  if (!(await authorize())) return { error: NO_PERMISSION };
+  const t = await getT();
+  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
 
   const title = str(fd, "title", 200);
   const price = num(fd, "price");
   const durationDays = num(fd, "durationDays");
-  if (!title) return { error: "اكتب اسم الجولة" };
-  if (!(price >= 0)) return { error: "السعر غير صحيح" };
-  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 365) return { error: "عدد الأيام يجب أن يكون بين 1 و 365" };
+  if (!title) return { error: t("Enter the tour name", "اكتب اسم الجولة") };
+  if (!(price >= 0)) return { error: t("The price isn't valid", "السعر غير صحيح") };
+  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 365) return { error: t("Days must be between 1 and 365", "عدد الأيام يجب أن يكون بين 1 و 365") };
 
   const values = {
     title: tr(title, str(fd, "arTitle", 200)),
@@ -156,10 +158,11 @@ export async function deleteTour(id: number) {
 // ---------- Blog ----------
 
 export async function savePost(id: number | null, _: ActionState, fd: FormData): Promise<ActionState> {
-  if (!(await authorize())) return { error: NO_PERMISSION };
+  const t = await getT();
+  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
 
   const title = str(fd, "title", 300);
-  if (!title) return { error: "اكتب عنوان المقال" };
+  if (!title) return { error: t("Enter the article title", "اكتب عنوان المقال") };
   const date = str(fd, "publishedAt", 10);
 
   const values = {
@@ -206,10 +209,11 @@ export async function deletePost(id: number) {
 // ---------- Extra pages ----------
 
 export async function savePage(id: number | null, _: ActionState, fd: FormData): Promise<ActionState> {
-  if (!(await authorize())) return { error: NO_PERMISSION };
+  const t = await getT();
+  if (!(await authorize())) return { error: t("You don't have permission to do this", "ليس لديك صلاحية لهذا الإجراء") };
 
   const title = str(fd, "title", 200);
-  if (!title) return { error: "اكتب عنوان الصفحة" };
+  if (!title) return { error: t("Enter the page title", "اكتب عنوان الصفحة") };
   const values = {
     title: tr(title, str(fd, "arTitle", 200)),
     slug: await uniqueSlug(pages, str(fd, "slug", 100) || title, id ?? undefined),

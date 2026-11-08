@@ -3,10 +3,12 @@
 import { useOptimistic, useState, useTransition } from "react";
 import { KeyRound, Search, Trash2 } from "lucide-react";
 import { deleteUser, toggleUserActive } from "@/lib/actions";
-import { formatDate, roleLabels } from "@/lib/format";
+import { formatDate, roleLabel } from "@/lib/format";
+import { useT } from "@/components/admin/admin-lang";
 import type { UserRow } from "@/lib/queries";
 
 export function DeleteButton({ onDelete, label }: { onDelete: () => Promise<void>; label: string }) {
+  const t = useT();
   const [pending, startTransition] = useTransition();
   return (
     <button
@@ -15,7 +17,7 @@ export function DeleteButton({ onDelete, label }: { onDelete: () => Promise<void
       aria-label={label}
       title={label}
       onClick={() => {
-        if (confirm(`${label}؟`)) startTransition(onDelete);
+        if (confirm(t(`${label}?`, `${label}؟`))) startTransition(onDelete);
       }}
       className="rounded-lg p-2 text-muted transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-50"
     >
@@ -25,6 +27,7 @@ export function DeleteButton({ onDelete, label }: { onDelete: () => Promise<void
 }
 
 function UserToggle({ user, disabled }: { user: UserRow; disabled: boolean }) {
+  const t = useT();
   const [active, setActive] = useOptimistic(user.active);
   const [, startTransition] = useTransition();
   return (
@@ -38,12 +41,12 @@ function UserToggle({ user, disabled }: { user: UserRow; disabled: boolean }) {
       }
       role="switch"
       aria-checked={active}
-      aria-label={`تفعيل ${user.name}`}
+      aria-label={t(`Active: ${user.name}`, `تفعيل ${user.name}`)}
       className={`relative h-6 w-11 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${active ? "bg-success" : "bg-border"}`}
     >
       <span
         className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${
-          active ? "left-0.5" : "left-[22px]"
+          active ? "start-[22px]" : "start-0.5"
         }`}
       />
     </button>
@@ -51,6 +54,7 @@ function UserToggle({ user, disabled }: { user: UserRow; disabled: boolean }) {
 }
 
 export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId: number; canManage: boolean }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const list = users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
@@ -59,12 +63,12 @@ export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId:
     <>
       <div className="p-4">
         <div className="relative max-w-sm">
-          <Search className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted" />
+          <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="ابحث بالاسم أو البريد..."
-            className="w-full rounded-lg border border-border bg-surface-2 py-2 pr-9 pl-3 text-sm outline-none focus:border-primary"
+            placeholder={t("Search by name or email…", "ابحث بالاسم أو البريد...")}
+            className="w-full rounded-lg border border-border bg-surface-2 py-2 ps-9 pe-3 text-sm outline-none focus:border-primary"
           />
         </div>
       </div>
@@ -72,10 +76,10 @@ export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId:
         <table className="rtable w-full text-sm">
           <thead className="bg-surface-2 text-muted">
             <tr>
-              <th className="px-5 py-3 text-right font-medium">المستخدم</th>
-              <th className="px-5 py-3 text-right font-medium">الدور</th>
-              <th className="px-5 py-3 text-right font-medium">تاريخ الانضمام</th>
-              <th className="px-5 py-3 text-right font-medium">الحالة</th>
+              <th className="px-5 py-3 text-start font-medium">{t("User", "المستخدم")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Role", "الدور")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Joined", "تاريخ الانضمام")}</th>
+              <th className="px-5 py-3 text-start font-medium">{t("Active", "الحالة")}</th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
@@ -93,29 +97,29 @@ export function UsersTable({ users, meId, canManage }: { users: UserRow[]; meId:
                     </div>
                   </div>
                 </td>
-                <td data-label="الدور" className="px-5 py-3">
-                  {roleLabels[u.role]}
-                  {u.id === meId && <span className="mr-2 text-xs text-primary">(أنت)</span>}
+                <td data-label={t("Role", "الدور")} className="px-5 py-3">
+                  {roleLabel(u.role, t)}
+                  {u.id === meId && <span className="ms-2 text-xs text-primary">{t("(you)", "(أنت)")}</span>}
                   {u.canLogin && (
-                    <span title="يمكنه تسجيل الدخول" className="mr-2 inline-flex align-middle text-muted">
+                    <span title={t("Can sign in", "يمكنه تسجيل الدخول")} className="ms-2 inline-flex align-middle text-muted">
                       <KeyRound className="size-3.5" />
                     </span>
                   )}
                 </td>
-                <td data-label="انضم" className="px-5 py-3 text-muted"><span dir="ltr">{formatDate(u.createdAt)}</span></td>
-                <td data-label="الحالة" className="px-5 py-3 [&>button]:align-middle">
+                <td data-label={t("Joined", "انضم")} className="px-5 py-3 text-muted"><span dir="ltr">{formatDate(u.createdAt)}</span></td>
+                <td data-label={t("Active", "الحالة")} className="px-5 py-3 [&>button]:align-middle">
                   <UserToggle user={u} disabled={!canManage || u.id === meId} />
                 </td>
-                <td className="rtable-end px-5 py-3 text-left">
+                <td className="rtable-end px-5 py-3 text-end">
                   {canManage && u.id !== meId && (
-                    <DeleteButton label={`حذف ${u.name}`} onDelete={() => deleteUser(u.id)} />
+                    <DeleteButton label={t(`Delete ${u.name}`, `حذف ${u.name}`)} onDelete={() => deleteUser(u.id)} />
                   )}
                 </td>
               </tr>
             ))}
             {list.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-5 py-10 text-center text-muted">لا توجد نتائج</td>
+                <td colSpan={5} className="px-5 py-10 text-center text-muted">{t("No results", "لا توجد نتائج")}</td>
               </tr>
             )}
           </tbody>

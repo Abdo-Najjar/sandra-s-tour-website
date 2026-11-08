@@ -7,16 +7,22 @@ import { MESSAGE_KINDS, type MessageKind } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { getMessages } from "@/lib/queries";
+import { getT } from "@/lib/admin/lang";
+import type { T } from "@/lib/admin/i18n";
 import { whatsappLink } from "@/lib/site/shape";
 
-export const metadata = { title: "الرسائل والشراكات" };
+export const metadata = { title: "Messages & partners" };
 
-const kindLabels: Record<MessageKind, string> = { partnership: "طلب شراكة", contact: "رسالة" };
+const kindLabel = (k: MessageKind, t: T) => (k === "partnership" ? t("Partnership request", "طلب شراكة") : t("Message", "رسالة"));
 
-export default function MessagesPage(props: PageProps<"/admin/messages">) {
+export default async function MessagesPage(props: PageProps<"/admin/messages">) {
+  const t = await getT();
   return (
     <>
-      <PageHeader title="الرسائل والشراكات" subtitle="رسائل الزوار وطلبات الشراكة مع المرشدين والفنادق" />
+      <PageHeader
+        title={t("Messages & partners", "الرسائل والشراكات")}
+        subtitle={t("Visitor messages and partnership requests from guides and hotels", "رسائل الزوار وطلبات الشراكة مع المرشدين والفنادق")}
+      />
       <Suspense fallback={<ContentSkeleton />}>
         <MessagesContent {...props} />
       </Suspense>
@@ -27,8 +33,8 @@ export default function MessagesPage(props: PageProps<"/admin/messages">) {
 async function MessagesContent({ searchParams }: PageProps<"/admin/messages">) {
   const raw = (await searchParams).kind;
   const kind = MESSAGE_KINDS.includes(raw as MessageKind) ? (raw as MessageKind) : undefined;
-  const [me, list] = await Promise.all([requireUser(), getMessages(kind)]);
-  const tabs: [string, string][] = [["", "الكل"], ...MESSAGE_KINDS.map((k): [string, string] => [k, kindLabels[k]])];
+  const [me, list, t] = await Promise.all([requireUser(), getMessages(kind), getT()]);
+  const tabs: [string, string][] = [["", t("All", "الكل")], ...MESSAGE_KINDS.map((k): [string, string] => [k, kindLabel(k, t)])];
 
   return (
     <>
@@ -46,7 +52,7 @@ async function MessagesContent({ searchParams }: PageProps<"/admin/messages">) {
         ))}
       </div>
 
-      {list.length === 0 && <Card className="py-12 text-center text-muted">لا توجد رسائل.</Card>}
+      {list.length === 0 && <Card className="py-12 text-center text-muted">{t("No messages.", "لا توجد رسائل.")}</Card>}
 
       <div className="grid gap-3">
         {list.map((m) => (
@@ -54,9 +60,9 @@ async function MessagesContent({ searchParams }: PageProps<"/admin/messages">) {
             <div className="flex flex-wrap items-start gap-3">
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  {!m.read && <span className="size-2 rounded-full bg-primary" aria-label="غير مقروءة" />}
+                  {!m.read && <span className="size-2 rounded-full bg-primary" aria-label={t("Unread", "غير مقروءة")} />}
                   <h2 className="font-bold" dir="auto">{m.name}</h2>
-                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{kindLabels[m.kind]}</span>
+                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{kindLabel(m.kind, t)}</span>
                 </div>
                 <div className="mt-1 text-sm text-muted" dir="auto">
                   {[m.category, m.location].filter(Boolean).join(" · ")}

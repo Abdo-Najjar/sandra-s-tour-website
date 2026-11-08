@@ -1,21 +1,21 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { BackLink } from "@/components/admin/new-link";
+import { getT } from "@/lib/admin/lang";
 import { notFound } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { ContentSkeleton, PageHeader } from "@/components/ui";
 import { SectionForm } from "@/components/admin/site-forms";
 import { defaultContent, SITE_SECTIONS } from "@/lib/site/content";
 import { isLang } from "@/lib/site/i18n";
 import { getSiteContent } from "@/lib/queries";
 
-export const metadata = { title: "تعديل المحتوى" };
+export const metadata = { title: "Edit content" };
 
-export default function SectionPage({ params, searchParams }: PageProps<"/admin/site/[section]">) {
+export default async function SectionPage({ params, searchParams }: PageProps<"/admin/site/[section]">) {
+  const t = await getT();
   return (
     <>
-      <Link href="/admin/site" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-        <ChevronRight className="size-4" /> محتوى الموقع
-      </Link>
+      <BackLink href="/admin/site" label={t("Website content", "محتوى الموقع")} />
       <Suspense fallback={<ContentSkeleton />}>
         <SectionContent params={params} searchParams={searchParams} />
       </Suspense>
@@ -35,16 +35,16 @@ async function SectionContent({
   const lang = isLang(langParam) ? langParam : "en";
   const meta = SITE_SECTIONS.find((s) => s.key === section);
   if (!meta) notFound();
-  const content = await getSiteContent(lang);
+  const [content, t] = await Promise.all([getSiteContent(lang), getT()]);
 
   return (
     <>
-      <PageHeader title={meta.label} subtitle={meta.description} />
+      <PageHeader title={t(...meta.label)} subtitle={t(...meta.description)} />
       {/* Each language has its own copy of the text. */}
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1 text-sm" role="tablist" aria-label="لغة المحتوى">
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1 text-sm" role="tablist" aria-label={t("Content language", "لغة المحتوى")}>
         {[
-          { key: "en", label: "English — الموقع الإنجليزي" },
-          { key: "ar", label: "العربية — الموقع العربي" },
+          { key: "en", label: t("English website", "الموقع الإنجليزي") },
+          { key: "ar", label: t("Arabic website", "الموقع العربي") },
         ].map((l) => (
           <Link
             key={l.key}
