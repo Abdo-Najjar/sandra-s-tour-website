@@ -22,21 +22,23 @@ function isActive(fullPath: string, href: string, section: string | null) {
 
 // The id of the menu section ("faq") that is on screen right now, if any.
 function useMenuSection(fullPath: string, menu: MenuItem[]) {
-  const [section, setSection] = useState<string | null>(null);
+  const [seen, setSeen] = useState<{ path: string; id: string | null }>({ path: "", id: null });
   useEffect(() => {
     const pathname = stripLang(fullPath);
-    const els = menu
+    const ids = menu
       .map((m) => m.href.split("#"))
       .filter(([path, id]) => id && (!path || path === pathname))
-      .map(([, id]) => document.getElementById(id))
-      .filter((el): el is HTMLElement => !!el);
+      .map(([, id]) => id);
+    if (!ids.length) return;
     const update = () => {
       const line = window.innerHeight * 0.35;
+      // Looked up each time: the section may stream in after the header.
+      const els = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
       const hit = els.find((el) => {
         const r = el.getBoundingClientRect();
-        return r.top <= line && r.bottom > line;
+        return r.top <= line && r.bottom > 0;
       });
-      setSection(hit?.id ?? null);
+      setSeen({ path: fullPath, id: hit?.id ?? null });
     };
     const frame = requestAnimationFrame(update);
     window.addEventListener("scroll", update, { passive: true });
@@ -49,7 +51,7 @@ function useMenuSection(fullPath: string, menu: MenuItem[]) {
       window.removeEventListener("hashchange", update);
     };
   }, [fullPath, menu]);
-  return section;
+  return seen.path === fullPath ? seen.id : null;
 }
 
 export function SiteHeader({
