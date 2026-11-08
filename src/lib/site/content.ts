@@ -337,7 +337,7 @@ export const defaultSiteContent = {
       ],
     },
     founder: {
-      image: img("33"),
+      image: "/site/sandra.jpg",
       badge: "Founder & Lead Tour Guide",
       eyebrow: "Founder & Lead Guide",
       title: "Meet Sandra | Founder & Lead Tour Guide",
@@ -419,7 +419,7 @@ export const defaultSiteContent = {
     },
     profile: {
       eyebrow: "FEATURED PROFILE",
-      image: img("60"),
+      image: "/site/sandra.jpg",
       chip: "Licensed Tour Guide #8412 • Founder",
       chipClass: "Class A",
       chipNote: "Accredited by Syrian Ministry of Tourism & WFTGA Registered",

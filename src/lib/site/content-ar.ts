@@ -327,7 +327,7 @@ export const defaultSiteContentAr: SiteContent = {
       ],
     },
     founder: {
-      image: img("33"),
+      image: "/site/sandra.jpg",
       badge: "المؤسِّسة والمرشدة الرئيسية",
       eyebrow: "المؤسِّسة والمرشدة الرئيسية",
       title: "تعرّف على ساندرا | المؤسِّسة والمرشدة الرئيسية",
@@ -409,7 +409,7 @@ export const defaultSiteContentAr: SiteContent = {
     },
     profile: {
       eyebrow: "الملف الشخصي",
-      image: img("60"),
+      image: "/site/sandra.jpg",
       chip: "مرشدة سياحية مرخّصة #8412 • المؤسِّسة",
       chipClass: "الفئة أ",
       chipNote: "معتمدة من وزارة السياحة السورية ومسجلة في الاتحاد العالمي للمرشدين",
